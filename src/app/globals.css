@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+  Palette: avionics. Neutral graphite + a single cockpit-display amber.
+  Light mode darkens the amber so text stays above 4.5:1.
+*/
+:root,
+[data-theme="dark"] {
+  --bg: #0d0e10;
+  --surface: #15171a;
+  --surface-2: #1d2024;
+  --line: rgb(232 233 228 / 0.09);
+  --line-strong: rgb(232 233 228 / 0.18);
+  --ink: #e8e9e4;
+  --muted: #979b9f;
+  --accent: #ffb224;
+  --accent-ink: #0d0e10;
+  --accent-soft: rgb(255 178 36 / 0.1);
+  --glass: rgb(21 23 26 / 0.66);
+  --shadow: 0 24px 60px -24px rgb(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #ebecea;
+  --surface: #f6f6f4;
+  --surface-2: #dfe0dd;
+  --line: rgb(16 17 19 / 0.1);
+  --line-strong: rgb(16 17 19 / 0.2);
+  --ink: #101113;
+  --muted: #55595e;
+  --accent: #8a5000;
+  --accent-ink: #f6f6f4;
+  --accent-soft: rgb(138 80 0 / 0.08);
+  --glass: rgb(246 246 244 / 0.72);
+  --shadow: 0 24px 60px -28px rgb(30 34 40 / 0.35);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-glass: var(--glass);
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Shape rule: controls 10px, containers 18px. */
+  --radius-ctl: 10px;
+  --radius-box: 18px;
+}
+
+/* Expanded display cut of Archivo for headlines */
+.display {
+  font-family: var(--font-archivo);
+  font-stretch: 118%;
+  font-variation-settings: "wdth" 118;
+  letter-spacing: -0.035em;
+}
+
+/* z-index scale: canvas 0, content 10, dock 40, grain 60 */
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  transition: background-color 0.5s var(--ease-out-expo), color 0.5s var(--ease-out-expo);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Fixed grain overlay. Never on scrolling containers. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Frosted glass, a web approximation (backdrop-filter), with solid fallback */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), var(--shadow);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Single marquee on the page (toolchain) */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 40s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
