@@ -18,7 +18,7 @@ export function Capabilities() {
     <section id="capabilities" className="relative py-24 md:py-36">
       <div className="mx-auto w-full max-w-[1400px] px-5 md:px-10">
         <Reveal>
-          <h2 className="display max-w-[14ch] text-4xl font-semibold leading-[1.02] md:text-6xl">The whole aircraft, end to end.</h2>
+          <h2 className="display max-w-[14ch] text-[2.6rem] font-semibold leading-[1] md:text-7xl lg:text-8xl">The whole aircraft, end to end.</h2>
         </Reveal>
 
         <div className="mt-14 grid grid-cols-1 gap-10 md:mt-20 md:grid-cols-12 md:gap-12">

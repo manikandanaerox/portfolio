@@ -20,54 +20,84 @@ const FLEET: AircraftConfig[] = [
   {
     id: "camera",
     Model: CameraQuad,
-    // Hovers above the centred portrait, nose to the viewer, gimbal aimed down at the face.
-    home: { hero: W(0, 0.63, 1.15, 0.25, { look: 0.55 }) },
-    mobileHome: { hero: W(0, 0.66, 0.85, 0.25, { look: 0.5 }) },
-    before: W(0, 0.62, 1.0, 0),
-    after: W(-2.1, 1.1, 0.9, 0.9),
-    dyn: { maxTiltDeg: 30, kpPos: 2.0, kpVel: 3.2, vMax: 8, attRate: 16, yawRate: 1.6, gust: 1 },
+    // Hovers beside the Systems heading, gimbal tilted down toward the image panel.
+    home: { capabilities: W(0.68, 0.58, 1.3, -0.6, { look: 0.6 }) },
+    track: 0.3,
+    before: W(2.0, 0.85, 1.25, -1.2),
+    after: W(2.2, 1.7, 1.1, -0.9),
+    dyn: { maxTiltDeg: 30, kpPos: 2.2, kpVel: 3.4, vMax: 10, attRate: 16, yawRate: 1.8, gust: 1 },
   },
   {
     id: "racer",
     Model: RacingQuad,
-    home: { about: W(-0.5, -0.02, 1.35, 0.9, { orbit: 1 }) },
-    before: W(2.2, -0.5, 1.0, -1.4),
-    after: W(-2.4, 0.7, 1.0, 1.6),
-    dyn: { maxTiltDeg: 58, kpPos: 3.0, kpVel: 5.5, vMax: 14, attRate: 30, yawRate: 4, gust: 1.3, yawToVelocity: 0.85 },
-    orbit: [1.0, 0.28, 0.9, 0.75],
+    home: { about: W(-0.5, -0.04, 1.75, 0.9, { orbit: 1 }) },
+    // Rips in from the right, low and close to the lens.
+    before: W(2.0, -0.55, 2.4, -1.4),
+    after: W(-2.3, 0.6, 2.0, 1.6),
+    dyn: { maxTiltDeg: 58, kpPos: 3.0, kpVel: 5.5, vMax: 16, attRate: 30, yawRate: 4, gust: 1.3, yawToVelocity: 0.85 },
+    orbit: [1.1, 0.3, 1.0, 0.75],
+    orbitShape: "eight",
+    track: 0.5,
   },
   {
     id: "inspection",
     Model: InspectionQuad,
     exhibit: true,
+    // Hero: follow-me. Chases the pointer (hovering just above it), routes around the
+    // portrait frame and never enters it; idles beside the frame on touch / no pointer.
+    // Over the headline its downwash pushes the letters.
     home: {
-      anatomy: [W(0.32, -0.02, 1.3, 0.4, { explode: 0.08 }), W(0.32, -0.02, 1.3, 0.4 + Math.PI * 1.15, { explode: 1 })],
+      hero: W(-0.58, 0.38, 0.95, 0.6, { patrol: 1 }),
+      anatomy: [W(0.3, -0.04, 1.6, 0.4, { explode: 0.08 }), W(0.3, -0.04, 1.6, 0.4 + Math.PI * 1.15, { explode: 1 })],
     },
     mobileHome: {
-      anatomy: [W(0, 0.42, 0.8, 0.4, { explode: 0.08 }), W(0, 0.42, 0.8, 0.4 + Math.PI * 1.15, { explode: 1 })],
+      hero: W(0, 0.8, 0.68, 0, { look: 0.5 }),
+      anatomy: [W(0, 0.42, 0.95, 0.4, { explode: 0.08 }), W(0, 0.42, 0.95, 0.4 + Math.PI * 1.15, { explode: 1 })],
     },
-    before: W(0.3, 2.4, 1.0, 0.4),
-    after: W(0.6, 2.8, 0.9, 0.4),
-    dyn: { maxTiltDeg: 32, kpPos: 2.1, kpVel: 3.4, vMax: 9, attRate: 16, yawRate: 1.5, gust: 1.15 },
+    before: W(-0.58, 0.38, 0.95, 0.6),
+    follow: {
+      depth: 0.95,
+      // Idle (no pointer / touch): calm drift between spots beside the frame.
+      idle: [
+        [-0.58, 0.38],
+        [-0.62, -0.02],
+        [0.6, 0.42],
+        [0.58, 0.02],
+      ],
+      subject: [0, 0.27, 1.0], // the face
+      aboveCursor: 0.3, // hover above the pointer so the drone sits over text, not on it
+      speed: 1.25, // NDC/s: keeps up with the pointer without darting
+      accel: 2.2,
+      idleSpeed: 0.22,
+      idleAccel: 0.35,
+      dwell: [3, 6],
+      dyn: { maxTiltDeg: 22, kpPos: 2.2, kpVel: 3.2, vMax: 7, attRate: 13, yawRate: 0.9, gust: 0.55 },
+    },
+    after: W(0.6, 2.4, 1.2, 0.4),
+    dyn: { maxTiltDeg: 32, kpPos: 2.3, kpVel: 3.6, vMax: 11, attRate: 16, yawRate: 1.6, gust: 1.15 },
   },
   {
     id: "vtol",
     Model: Vtol,
     vtol: true,
-    // Cruises in from the left on the wing, transitions to hover beside the flight log.
-    home: { journey: W(0.52, 0.0, 0.9, -0.75) },
-    before: W(-2.6, 0.55, 0.9, Math.PI / 2),
-    after: W(2.8, 0.9, 0.7, Math.PI / 2),
-    dyn: { maxTiltDeg: 22, kpPos: 1.5, kpVel: 2.4, vMax: 11, attRate: 9, yawRate: 1.2, gust: 0.9 },
+    // A mapping VTOL doesn't park: it loiters on the wing, circling beside the flight log.
+    home: { journey: W(0.56, 0.05, 1.0, Math.PI / 2, { orbit: 1 }) },
+    before: W(-1.7, 0.45, 1.15, Math.PI / 2),
+    after: W(2.4, 0.8, 1.0, Math.PI / 2),
+    dyn: { maxTiltDeg: 24, kpPos: 2.4, kpVel: 3.4, vMax: 16, attRate: 10, yawRate: 1.8, gust: 0.7 },
+    orbit: [1.6, 0.2, 1.6, 0.6],
+    orbitShape: "circle",
+    track: 0.3,
   },
   {
     id: "agri",
     Model: AgriHex,
     landing: { gearDrop: AGRI_GEAR_DROP },
-    home: { contact: W(0.48, -0.1, 0.9, -2.6) },
-    before: W(0.7, 2.6, 0.9, -2.6),
-    after: W(0.48, -0.1, 0.9, -2.6),
-    dyn: { maxTiltDeg: 20, kpPos: 1.5, kpVel: 2.4, vMax: 6, attRate: 8, yawRate: 0.9, gust: 0.75 },
+    track: 0.2,
+    home: { contact: W(0.5, -0.12, 1.15, -2.6) },
+    before: W(0.75, 2.2, 1.15, -2.6),
+    after: W(0.5, -0.12, 1.15, -2.6),
+    dyn: { maxTiltDeg: 20, kpPos: 1.7, kpVel: 2.6, vMax: 7, attRate: 8, yawRate: 0.9, gust: 0.75 },
   },
 ];
 
@@ -182,18 +212,18 @@ export default function Scene() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-[1400ms] ease-out-expo"
+      className="pointer-events-none fixed inset-0 z-20 transition-opacity duration-[1400ms] ease-out-expo"
       style={{ opacity: ready ? 1 : 0 }}
     >
       <Canvas
         dpr={dpr}
         frameloop="demand"
-        camera={{ fov: 35, position: [0, 1.7, 9], near: 0.1, far: 40 }}
+        camera={{ fov: 35, position: [0, 3.2, 9], near: 0.1, far: 50 }}
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         eventSource={document.getElementById("root")!}
         eventPrefix="client"
         onCreated={({ camera }) => {
-          // Slightly elevated chase-cam view: we see the top of a level aircraft without faking its attitude.
+          // Elevated (~20°) chase-cam view: aircraft read from above, level, without faking attitude.
           camera.lookAt(0, 0, 0);
           requestAnimationFrame(() => setReady(true));
         }}

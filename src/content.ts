@@ -12,7 +12,7 @@ export const profile = {
   name: "Manikandan", // PLACEHOLDER
   role: "UAV Systems Engineer",
   // PLACEHOLDER photo (Unsplash). Drop a real portrait at /public/photo.jpg and set this to "/photo.jpg".
-  photo: "https://images.unsplash.com/photo-1506947411487-a56738267384?auto=format&fit=crop&w=760&h=950&q=80&crop=faces",
+  photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&h=1125&q=80&crop=faces",
   email: "hello@example.com", // PLACEHOLDER
   socials: [
     { label: "GitHub", href: "https://github.com/" }, // PLACEHOLDER

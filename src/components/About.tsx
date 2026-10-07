@@ -8,10 +8,10 @@ export function About() {
         {/* Left columns stay clear on desktop: the aircraft holds position there. */}
         <div className="md:col-span-7 md:col-start-6 lg:col-span-6 lg:col-start-7">
           <Reveal>
-            <h2 className="display text-4xl font-semibold leading-[1.02] md:text-[3.4rem]">{about.headline}</h2>
+            <h2 className="display text-[2.6rem] font-semibold leading-[1] md:text-6xl lg:text-7xl">{about.headline}</h2>
           </Reveal>
           <Reveal delay={0.08}>
-            <p className="mt-8 text-xl leading-snug tracking-tight md:text-2xl">{about.body[0]}</p>
+            <p className="mt-8 text-xl leading-snug tracking-tight md:text-[1.7rem]">{about.body[0]}</p>
           </Reveal>
           <Reveal delay={0.14}>
             <p className="mt-6 max-w-[58ch] leading-relaxed text-muted md:text-lg">{about.body[1]}</p>

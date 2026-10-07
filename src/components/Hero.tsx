@@ -1,107 +1,128 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { useEffect, useRef } from "react";
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type Variants } from "motion/react";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { hero, profile } from "../content";
 import { scrollToId } from "../lib/scroll";
+import { heroFrame } from "../lib/heroFrame";
+import { Downwash } from "./Downwash";
 import { Img } from "./Img";
+
+/*
+  Opening shot: "Airframe".
+  The portrait sits in a clean centred frame. The inspection drone hovers
+  directly behind it (WebGL canvas is below the DOM), so the frame covers the
+  body and the face is never touched, while the four arms and spinning rotors
+  reach out past the frame's corners. The person is the centre of the aircraft.
+*/
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-/** Viewfinder brackets: they close in on the portrait like a camera acquiring focus. */
-function Viewfinder({ reduce }: { reduce: boolean | null }) {
-  const corners = [
-    "left-0 top-0 border-l-2 border-t-2 rounded-tl-[6px]",
-    "right-0 top-0 border-r-2 border-t-2 rounded-tr-[6px]",
-    "left-0 bottom-0 border-l-2 border-b-2 rounded-bl-[6px]",
-    "right-0 bottom-0 border-r-2 border-b-2 rounded-br-[6px]",
-  ];
-  return (
-    <motion.div
-      aria-hidden
-      className="pointer-events-none absolute -inset-3 md:-inset-4"
-      initial={reduce ? false : { scale: 1.12, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 1.1, delay: 0.55, ease }}
-    >
-      {corners.map((c) => (
-        <span key={c} className={`absolute h-6 w-6 border-accent md:h-7 md:w-7 ${c}`} />
-      ))}
-    </motion.div>
-  );
+/** Gentle 3D tilt of the frame toward the pointer (off for reduced motion and touch). */
+function usePointerTilt() {
+  const reduce = useReducedMotion();
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  useEffect(() => {
+    if (reduce || !window.matchMedia("(pointer: fine)").matches) return;
+    const onMove = (e: PointerEvent) => {
+      px.set(e.clientX / window.innerWidth - 0.5);
+      py.set(e.clientY / window.innerHeight - 0.5);
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [reduce, px, py]);
+  const spring = { stiffness: 120, damping: 18, mass: 0.6 };
+  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-7, 7]), spring);
+  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [6, -6]), spring);
+  return { rotateX, rotateY };
 }
 
-/*
-  Centred hero: the portrait is the subject, the headline flanks it, and the
-  WebGL aircraft hovers above with its gimbal camera aimed down at the face.
-*/
+const CORNERS = [
+  "left-0 top-0 border-l-2 border-t-2 rounded-tl-[6px]",
+  "right-0 top-0 border-r-2 border-t-2 rounded-tr-[6px]",
+  "left-0 bottom-0 border-l-2 border-b-2 rounded-bl-[6px]",
+  "right-0 bottom-0 border-r-2 border-b-2 rounded-br-[6px]",
+];
+
 export function Hero() {
   const reduce = useReducedMotion();
-  const container: Variants = { show: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } } };
+  const tilt = usePointerTilt();
+  const frameRef = useRef<HTMLDivElement>(null);
+  // The flight model reads this element's rect every frame and keeps the drone out of it.
+  useEffect(() => {
+    heroFrame.el = frameRef.current;
+    return () => {
+      heroFrame.el = null;
+    };
+  }, []);
+  const container: Variants = { show: { transition: { staggerChildren: 0.1, delayChildren: 0.35 } } };
   const item: Variants = {
-    hidden: reduce ? {} : { opacity: 0, y: 24 },
+    hidden: reduce ? {} : { opacity: 0, y: 22 },
     show: { opacity: 1, y: 0, transition: { duration: 1, ease } },
   };
 
   return (
-    <section id="home" className="relative flex min-h-[100dvh] flex-col justify-end pb-8 pt-[24dvh] md:pb-12 md:pt-[25dvh]">
-      <motion.div variants={container} initial="hidden" animate="show" className="mx-auto w-full max-w-[1400px] px-5 md:px-10">
-        <div className="grid grid-cols-1 items-center justify-items-center gap-6 md:grid-cols-[1fr_auto_1fr] md:gap-12">
-          {/* Portrait */}
+    <section id="home" className="relative flex min-h-[100dvh] flex-col items-center justify-center px-5 pb-10 pt-[12dvh] md:pb-12 md:pt-[11dvh]">
+      {/* Portrait frame */}
+      <div ref={frameRef} style={{ perspective: 1200 }}>
+        <motion.div
+          initial={reduce ? false : { opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease }}
+          style={{ rotateX: tilt.rotateX, rotateY: tilt.rotateY, transformStyle: "preserve-3d" }}
+          className="relative aspect-[4/5] h-[clamp(17rem,40dvh,30rem)] md:h-[clamp(18rem,47dvh,34rem)]"
+        >
+          <Img
+            src={profile.photo}
+            alt={`Portrait of ${profile.name}`}
+            priority
+            sizes="(min-width: 768px) 440px, 70vw"
+            position="50% 35%"
+            className="absolute inset-0 rounded-[18px] shadow-[0_40px_80px_-30px_rgb(0_0_0/0.65)] ring-1 ring-line-strong"
+          />
+          {/* Viewfinder brackets close in like the payload camera acquiring focus */}
           <motion.div
-            variants={item}
-            className="relative order-first aspect-[4/5] h-[31dvh] md:order-none md:col-start-2 md:row-start-1 md:h-[clamp(13rem,40dvh,25rem)]"
+            aria-hidden
+            className="pointer-events-none absolute -inset-3.5 md:-inset-4"
+            initial={reduce ? false : { scale: 1.14, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.1, delay: 0.7, ease }}
           >
-            <Img
-              src={profile.photo}
-              alt={`Portrait of ${profile.name}`}
-              priority
-              sizes="(min-width: 768px) 320px, 60vw"
-              position="50% 32%"
-              className="absolute inset-0 rounded-[18px] ring-1 ring-line-strong"
-            />
-            <Viewfinder reduce={reduce} />
+            {CORNERS.map((c) => (
+              <span key={c} className={`absolute h-7 w-7 border-accent ${c}`} />
+            ))}
           </motion.div>
-
-          {/* Headline split around the portrait on desktop, stacked under it on mobile */}
-          <h1 className="contents">
-            <motion.span
-              variants={item}
-              className="display block text-center text-[2.4rem] font-semibold leading-[1] sm:text-5xl md:col-start-1 md:row-start-1 md:justify-self-end md:text-right md:text-[clamp(2.5rem,4.6vw,4.6rem)]"
-            >
-              {hero.headlineStart}
-            </motion.span>
-            <motion.span
-              variants={item}
-              className="display -mt-4 block text-center text-[2.4rem] font-semibold leading-[1] text-accent sm:text-5xl md:col-start-3 md:row-start-1 md:mt-0 md:justify-self-start md:text-left md:text-[clamp(2.5rem,4.6vw,4.6rem)]"
-            >
-              {hero.headlineEmphasis}
-            </motion.span>
-          </h1>
-        </div>
-
-        {/* Identity, one line of copy, actions: centred under the portrait */}
-        <motion.div variants={item} className="mt-8 flex flex-col items-center text-center md:mt-10">
-          <p className="text-xl font-semibold tracking-tight md:text-2xl">
-            {profile.name}
-            <span className="ml-3 font-mono text-xs font-normal text-accent md:text-sm">{profile.role}</span>
-          </p>
-          <p className="mt-3 max-w-[48ch] leading-relaxed text-muted md:text-lg">{hero.sub}</p>
         </motion.div>
+      </div>
 
+      {/* Identity, headline, actions */}
+      <motion.div variants={container} initial="hidden" animate="show" className="mt-8 flex flex-col items-center text-center md:mt-9">
+        <motion.p variants={item} className="text-base font-semibold tracking-tight md:text-xl">
+          {profile.name}
+          <span className="ml-3 font-mono text-xs font-normal text-accent md:text-sm">{profile.role}</span>
+        </motion.p>
+        <motion.h1
+          variants={item}
+          className="display mt-3 max-w-[18ch] text-[2.3rem] font-semibold leading-[1] sm:text-5xl md:max-w-none md:text-[clamp(2.6rem,4.1vw,4.4rem)]"
+        >
+          {/* Letters react to the rotor downwash of the drone surveying above them. */}
+          <Downwash parts={[{ text: hero.headlineStart }, { text: hero.headlineEmphasis, className: "text-accent" }]} />
+        </motion.h1>
         <motion.div variants={item} className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <button
             type="button"
             onClick={() => scrollToId("projects")}
-            className="group inline-flex items-center gap-2.5 whitespace-nowrap rounded-[10px] bg-accent px-5 py-3.5 text-sm font-semibold text-accent-ink transition-transform duration-300 ease-out-expo hover:-translate-y-0.5 active:translate-y-px"
+            className="group inline-flex items-center gap-2.5 whitespace-nowrap rounded-[10px] bg-accent px-6 py-3.5 text-sm font-semibold text-accent-ink transition-transform duration-300 ease-out-expo hover:-translate-y-0.5 active:translate-y-px md:text-base"
           >
             View projects
-            <ArrowRightIcon size={16} weight="bold" className="transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRightIcon size={17} weight="bold" className="transition-transform duration-300 group-hover:translate-x-1" />
           </button>
           <button
             type="button"
             onClick={() => scrollToId("contact")}
-            className="inline-flex items-center whitespace-nowrap rounded-[10px] border border-line-strong bg-glass px-5 py-3.5 text-sm font-semibold text-ink backdrop-blur-md transition-colors duration-300 hover:border-ink active:translate-y-px"
+            className="glass inline-flex items-center whitespace-nowrap rounded-[10px] px-6 py-3.5 text-sm font-semibold text-ink transition-colors duration-300 hover:border-line-strong active:translate-y-px md:text-base"
           >
             Contact
           </button>

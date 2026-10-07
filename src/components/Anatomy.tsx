@@ -27,7 +27,7 @@ export function Anatomy() {
       <div className="sticky top-0 flex h-[100dvh] items-end overflow-hidden md:items-center">
         <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 px-5 pb-10 md:grid-cols-12 md:px-10 md:pb-0">
           <div className="md:col-span-5 lg:col-span-4">
-            <h2 className="display text-4xl font-semibold leading-[1.02] md:text-5xl">Every part, chosen on purpose.</h2>
+            <h2 className="display text-[2.4rem] font-semibold leading-[1] md:text-6xl">Every part, chosen on purpose.</h2>
             <p className="mt-5 max-w-[42ch] text-muted">Seven systems that have to work as one.</p>
 
             {/* Desktop: full list with the active part expanded */}

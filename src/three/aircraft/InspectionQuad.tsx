@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import type { PartKey } from "../../content";
-import type { AircraftState } from "../kit";
+import { crease, type AircraftState } from "../kit";
 
 /*
   Industrial inspection quadcopter (Matrice / Astro class), built procedurally.
@@ -113,8 +113,7 @@ function extrudeFlat(shape: THREE.Shape, height: number, bevel: number) {
   });
   g.rotateX(-Math.PI / 2);
   g.translate(0, -height / 2 + bevel, 0);
-  g.computeVertexNormals();
-  return g;
+  return crease(g);
 }
 
 /** Slender two-blade prop: wide near the root, tapering, with pitch twist and slight droop. */
@@ -148,8 +147,7 @@ function bladeGeometry() {
     const z = v.y * Math.sin(a) + v.z * Math.cos(a);
     pos.setXYZ(i, v.x, y - t * t * 0.01, z);
   }
-  g.computeVertexNormals();
-  return g;
+  return crease(g, Math.PI / 3);
 }
 
 /** Cylinder spanning two points. */

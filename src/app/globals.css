@@ -67,7 +67,7 @@
   letter-spacing: -0.035em;
 }
 
-/* z-index scale: canvas 0, content 10, dock 40, grain 60 */
+/* z-index scale: content 10, WebGL canvas 20 (pointer-events none, above content so aircraft are never hidden), dock 40, grain 60 */
 
 html {
   background: var(--bg);

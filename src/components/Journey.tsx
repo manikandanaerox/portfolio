@@ -8,7 +8,7 @@ export function Journey() {
       <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 px-5 md:grid-cols-12 md:px-10">
         <div className="md:col-span-7 lg:col-span-6">
           <Reveal>
-            <h2 className="display text-4xl font-semibold leading-[1.02] md:text-6xl">Flight log.</h2>
+            <h2 className="display text-[2.6rem] font-semibold leading-[1] md:text-7xl lg:text-8xl">Flight log.</h2>
           </Reveal>
           <ol className="mt-12">
             {journey.map((j, i) => (

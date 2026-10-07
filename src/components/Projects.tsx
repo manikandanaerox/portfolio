@@ -83,7 +83,7 @@ export function Projects() {
       <div className={pan ? "sticky top-0 flex h-[100dvh] flex-col justify-center overflow-hidden pt-16" : "py-24"}>
         <div className="mx-auto w-full max-w-[1400px] px-5 md:px-10">
           <p className="font-mono text-xs text-accent">Selected work</p>
-          <h2 className="display mt-3 text-4xl font-semibold leading-[1.02] md:text-5xl">Aircraft I have built and flown.</h2>
+          <h2 className="display mt-3 text-[2.4rem] font-semibold leading-[1] md:text-6xl">Aircraft I have built and flown.</h2>
         </div>
         <motion.div
           ref={track}

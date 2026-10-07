@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useRef, type ComponentType } from "react";
+import { useEffect, useMemo, useRef, type ComponentType } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { anatomy } from "../content";
 import { layout, reducedMotion } from "../lib/layout";
 import { type AircraftState, newAircraftState } from "./kit";
+import { fleetScreen } from "../lib/fleetScreen";
+import { heroFrame, pointerTrack, trackPointer } from "../lib/heroFrame";
 
 /*
   Generic flight model shared by the whole fleet.
@@ -25,12 +27,12 @@ import { type AircraftState, newAircraftState } from "./kit";
 // ---------- waypoints & stations ----------
 
 /** x/y: fractions of the half-viewport; s: apparent size (converted to depth). */
-export type Waypoint = { x: number; y: number; s: number; yaw: number; explode: number; look: number; orbit: number };
-export const W = (x: number, y: number, s: number, yaw: number, o: Partial<Pick<Waypoint, "explode" | "look" | "orbit">> = {}): Waypoint => ({
-  x, y, s, yaw, explode: o.explode ?? 0, look: o.look ?? 0, orbit: o.orbit ?? 0,
+export type Waypoint = { x: number; y: number; s: number; yaw: number; explode: number; look: number; orbit: number; patrol: number };
+export const W = (x: number, y: number, s: number, yaw: number, o: Partial<Pick<Waypoint, "explode" | "look" | "orbit" | "patrol">> = {}): Waypoint => ({
+  x, y, s, yaw, explode: o.explode ?? 0, look: o.look ?? 0, orbit: o.orbit ?? 0, patrol: o.patrol ?? 0,
 });
 
-export const STATIONS = ["hero", "about", "anatomy", "gap", "journey", "contact"] as const;
+export const STATIONS = ["hero", "about", "anatomy", "capabilities", "gap", "journey", "contact"] as const;
 export type Station = (typeof STATIONS)[number];
 type Home = Waypoint | [Waypoint, Waypoint]; // [at station start, at station end]
 
@@ -57,6 +59,27 @@ export type AircraftConfig = {
   landing?: { gearDrop: number }; // lands at its contact station
   exhibit?: boolean; // exploded view in the anatomy station
   orbit?: [number, number, number, number]; // ax, ay, az (world units), angular rate
+  orbitShape?: "eight" | "circle"; // racer carves figure-eights; VTOL loiters in a circle
+  /** Cursor tracking outside follow-me: the station leans toward the pointer, up to this NDC radius. */
+  track?: number;
+  /**
+   * Follow-me (hero): while the station's `patrol` weight is on, the aircraft follows
+   * the mouse pointer, hovering just above it; with no pointer activity it drifts
+   * between `idle` spots. It never enters the portrait frame (heroFrame): its setpoint
+   * routes around the frame and is pushed out of it. Nose and gimbal stay on `subject`.
+   */
+  follow?: {
+    depth: number; // apparent size while following
+    idle: [number, number][]; // screen-space (NDC) idle spots
+    subject: [number, number, number];
+    aboveCursor: number; // NDC offset so the drone hovers above the pointer, not on it
+    speed: number; // setpoint speed when following (NDC/s)
+    accel: number;
+    idleSpeed: number;
+    idleAccel: number;
+    dwell: [number, number];
+    dyn: Partial<Dynamics>;
+  };
 };
 
 function stationRanges() {
@@ -66,11 +89,12 @@ function stationRanges() {
   const end = (id: keyof typeof s) => (s[id] ? s[id]!.top + s[id]!.height - vh : 0);
   const contact = Math.min(top("contact"), layout.maxScroll);
   return {
-    hero: [0, vh * 0.12],
+    hero: [0, Math.max(vh * 0.12, top("about") - vh)],
     about: [top("about"), end("about")],
     anatomy: [top("anatomy"), end("anatomy")],
-    gap: [top("capabilities") - vh * 0.1, top("journey") - vh * 0.5],
-    journey: [top("journey"), end("journey")],
+    capabilities: [top("capabilities") - vh * 0.55, top("capabilities") + vh * 0.2],
+    gap: [top("capabilities") + vh * 0.75, top("journey") - vh * 1.45],
+    journey: [top("journey") - vh * 0.6, end("journey")],
     contact: [contact, contact],
   } as Record<Station, [number, number]>;
 }
@@ -94,7 +118,7 @@ function buildKeys(cfg: AircraftConfig, mobile: boolean): Key[] {
   return keys;
 }
 
-const FIELDS = ["x", "y", "s", "yaw", "explode", "look", "orbit"] as const;
+const FIELDS = ["x", "y", "s", "yaw", "explode", "look", "orbit", "patrol"] as const;
 
 function sample(keys: Key[], sy: number, out: Waypoint) {
   let i = 0;
@@ -129,6 +153,43 @@ function gust(t: number, seed: number, out: THREE.Vector3) {
   );
 }
 
+// ---------- follow-me geometry (screen / NDC space) ----------
+
+const TOP_SAFE = 0.7; // NDC: keep follow-me routes ~15% of the viewport below the top (dock)
+
+type Rect = { l: number; r: number; t: number; b: number }; // NDC, t > b
+
+const inside = (x: number, y: number, e: Rect) => x > e.l && x < e.r && y < e.t && y > e.b;
+
+/** Push a point inside the rect out to the nearest edge (slides along it). */
+function pushOut(v: THREE.Vector2, e: Rect | null) {
+  if (!e || !inside(v.x, v.y, e)) return;
+  const dl = v.x - e.l, dr = e.r - v.x;
+  const dt = e.t > TOP_SAFE ? Infinity : e.t - v.y; // top edge too close to the dock: not allowed
+  const db = e.b < -0.9 ? Infinity : (v.y - e.b) * 3; // prefer the sides: below the frame is the headline
+  const m = Math.min(dl, dr, dt, db);
+  if (m === dl) v.x = e.l;
+  else if (m === dr) v.x = e.r;
+  else if (m === dt) v.y = e.t;
+  else v.y = e.b;
+}
+
+/** Does the segment a->b pass through the rect's interior? (Liang-Barsky, slightly shrunk rect.) */
+function crosses(a: THREE.Vector2, b: THREE.Vector2, e: Rect) {
+  const k = 1e-3;
+  const box = { l: e.l + k, r: e.r - k, b: e.b + k, t: e.t - k };
+  let t0 = 0, t1 = 1;
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const clip = (p: number, q: number) => {
+    if (Math.abs(p) < 1e-9) return q >= 0;
+    const r = q / p;
+    if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; }
+    else { if (r < t0) return false; if (r < t1) t1 = r; }
+    return true;
+  };
+  return clip(-dx, a.x - box.l) && clip(dx, box.r - a.x) && clip(-dy, a.y - box.b) && clip(dy, box.t - a.y) && t0 < t1;
+}
+
 // ---------- aircraft ----------
 
 export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
@@ -146,8 +207,10 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     return h ? (Array.isArray(h) ? h[1] : h) : null;
   }, [cfg]);
 
-  const d = cfg.dyn;
-  const aHMax = G * Math.tan(THREE.MathUtils.degToRad(d.maxTiltDeg));
+  const followDyn = useMemo(() => ({ ...cfg.dyn, ...(cfg.follow?.dyn ?? {}) }), [cfg]);
+  useEffect(() => {
+    if (cfg.follow || cfg.track) trackPointer();
+  }, [cfg]);
 
   const sim = useMemo(
     () => ({
@@ -175,6 +238,19 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
       qWing: new THREE.Quaternion(),
       qTmp: new THREE.Quaternion(),
       euler: new THREE.Euler(),
+      // survey
+      idleIdx: 0,
+      pDwell: 0,
+      pSeed: 0.37,
+      c2: new THREE.Vector2(), // screen-space setpoint (NDC)
+      c2v: 0,
+      goal: new THREE.Vector2(),
+      hop: new THREE.Vector2(),
+      v2: new THREE.Vector2(),
+      carrotLive: false,
+      lean: new THREE.Vector2(), // smoothed cursor offset (NDC)
+      subject: new THREE.Vector3(),
+      pTarget: new THREE.Vector3(),
     }),
     [],
   );
@@ -210,6 +286,28 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     }
     const sy = window.scrollY;
     sample(cache.current.keys, sy, wp);
+
+    // Cursor tracking: lean the station toward the pointer, bounded so the aircraft
+    // stays in its own part of the layout. Off on the exploded bench and when idle.
+    if (cfg.track && !mobile && !reduce) {
+      const live = pointerTrack.fine && performance.now() - pointerTrack.t < 3500;
+      let ox = 0, oy = 0;
+      const onStage = Math.abs(wp.x) < 1 && Math.abs(wp.y) < 1; // never pull a parked aircraft into view
+      if (live && onStage && wp.explode < 0.05 && wp.patrol < 0.5) {
+        ox = (pointerTrack.x / window.innerWidth) * 2 - 1 - wp.x;
+        oy = 1 - (pointerTrack.y / window.innerHeight) * 2 + 0.12 - wp.y;
+        const len = Math.hypot(ox, oy);
+        if (len > cfg.track) {
+          ox *= cfg.track / len;
+          oy *= cfg.track / len;
+        }
+      }
+      sim.lean.x = THREE.MathUtils.damp(sim.lean.x, ox, 1.8, dt);
+      sim.lean.y = THREE.MathUtils.damp(sim.lean.y, oy, 1.8, dt);
+      wp.x += sim.lean.x;
+      wp.y += sim.lean.y;
+      if (onStage) wp.y = Math.min(0.86, wp.y); // stay clear of the dock
+    }
     toWorld(wp, fit, sim.target);
 
     // Landing commitment: 1 once the page reaches the contact station.
@@ -226,16 +324,114 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     if (cfg.orbit && wp.orbit > 0 && !reduce) {
       const [ax, ay, az, w] = cfg.orbit;
       const t = sim.t * w;
-      sim.target.x += Math.sin(t) * ax * wp.orbit;
-      sim.target.y += Math.sin(t * 2) * ay * wp.orbit;
-      sim.target.z += Math.sin(t * 2 + 0.6) * az * wp.orbit;
+      if (cfg.orbitShape === "circle") {
+        sim.target.x += Math.sin(t) * ax * wp.orbit;
+        sim.target.y += Math.sin(t * 0.5) * ay * wp.orbit;
+        sim.target.z += Math.cos(t) * az * wp.orbit;
+      } else {
+        sim.target.x += Math.sin(t) * ax * wp.orbit;
+        sim.target.y += Math.sin(t * 2) * ay * wp.orbit;
+        sim.target.z += Math.sin(t * 2 + 0.6) * az * wp.orbit;
+      }
     }
 
+    // Follow-me: the controller tracks a screen-space setpoint that glides toward
+    // the pointer (or an idle spot) with a trapezoidal speed profile, routes around
+    // the portrait frame and is never allowed inside it.
+    const followOn = !!cfg.follow && wp.patrol > 0.5 && !mobile;
+    const d = followOn ? followDyn : cfg.dyn;
+    const aHMax = G * Math.tan(THREE.MathUtils.degToRad(d.maxTiltDeg));
+    if (followOn) {
+      const f = cfg.follow!;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      // Keep-out rect around the frame, padded by the drone's on-screen size.
+      let ex: Rect | null = null;
+      const el = heroFrame.el;
+      if (el) {
+        const rc = el.getBoundingClientRect();
+        const rPx = fleetScreen.get(cfg.id)?.r ?? 90;
+        const padX = rPx * 0.95 + 20;
+        const padY = rPx * 0.35 + 16;
+        ex = { l: ((rc.left - padX) / vw) * 2 - 1, r: ((rc.right + padX) / vw) * 2 - 1, t: 1 - ((rc.top - padY) / vh) * 2, b: 1 - ((rc.bottom + padY) / vh) * 2 };
+      }
+
+      // (Re)entering the hero: start the setpoint where the scroll schedule already has
+      // the aircraft, so scrolling back up flies it straight home.
+      if (!sim.carrotLive) {
+        scratch.ndc.copy(sim.target).project(camera);
+        sim.c2.set(scratch.ndc.x, scratch.ndc.y);
+        sim.c2v = 0;
+        sim.carrotLive = true;
+      }
+
+      const following = pointerTrack.fine && performance.now() - pointerTrack.t < 3500;
+      if (following) {
+        sim.goal.set((pointerTrack.x / vw) * 2 - 1, 1 - (pointerTrack.y / vh) * 2 + f.aboveCursor);
+      } else {
+        const [ix, iy] = f.idle[sim.idleIdx];
+        sim.goal.set(ix, iy);
+        if (sim.c2.distanceTo(sim.goal) < 0.01) {
+          sim.pDwell -= dt;
+          if (sim.pDwell <= 0) {
+            sim.idleIdx = (sim.idleIdx + 1) % f.idle.length;
+            sim.pSeed = (sim.pSeed * 9301 + 49297) % 233280;
+            sim.pDwell = f.dwell[0] + (f.dwell[1] - f.dwell[0]) * (sim.pSeed / 233280);
+          }
+        }
+      }
+      sim.goal.set(THREE.MathUtils.clamp(sim.goal.x, -0.9, 0.9), THREE.MathUtils.clamp(sim.goal.y, -0.82, TOP_SAFE));
+      pushOut(sim.goal, ex);
+
+      // Route around the frame: shortest path over the frame's (slightly expanded)
+      // corners, re-planned every frame from the current setpoint. Stateless, so it
+      // cannot flip-flop; corners above the safe band (dock) are never used.
+      sim.hop.copy(sim.goal);
+      if (ex && crosses(sim.c2, sim.goal, ex)) {
+        const m = 0.015;
+        const corners = [
+          new THREE.Vector2(ex.l - m, ex.t + m), new THREE.Vector2(ex.r + m, ex.t + m),
+          new THREE.Vector2(ex.l - m, ex.b - m), new THREE.Vector2(ex.r + m, ex.b - m),
+        ].filter((c) => c.y < TOP_SAFE && c.y > -0.9);
+        const tail = (c: THREE.Vector2) => {
+          if (!crosses(c, sim.goal, ex!)) return c.distanceTo(sim.goal);
+          let best = Infinity;
+          for (const c2 of corners) if (c2 !== c && !crosses(c, c2, ex!) && !crosses(c2, sim.goal, ex!)) best = Math.min(best, c.distanceTo(c2) + c2.distanceTo(sim.goal));
+          return best;
+        };
+        let best = Infinity;
+        for (const c of corners) {
+          if (c.distanceTo(sim.c2) < 0.02 || crosses(sim.c2, c, ex)) continue;
+          const cost = sim.c2.distanceTo(c) + tail(c);
+          if (cost < best) {
+            best = cost;
+            sim.hop.copy(c);
+          }
+        }
+      }
+
+      const spd = following ? f.speed : f.idleSpeed;
+      const acc = following ? f.accel : f.idleAccel;
+      const toGo = sim.c2.distanceTo(sim.hop);
+      const remaining = toGo + sim.hop.distanceTo(sim.goal);
+      const want = Math.min(spd, Math.sqrt(2 * acc * remaining));
+      sim.c2v = want > sim.c2v ? Math.min(want, sim.c2v + acc * dt) : want;
+      if (toGo > 1e-5) sim.c2.addScaledVector(sim.v2.subVectors(sim.hop, sim.c2).normalize(), Math.min(toGo, sim.c2v * dt));
+      pushOut(sim.c2, ex);
+
+      toWorld(W(sim.c2.x, sim.c2.y, f.depth, 0), fit, sim.pTarget);
+      toWorld(W(f.subject[0], f.subject[1], f.subject[2], 0), fit, sim.subject);
+      sim.target.lerp(sim.pTarget, THREE.MathUtils.clamp((wp.patrol - 0.5) * 2, 0, 1));
+    } else sim.carrotLive = false;
+
     // Parked out of frame and settled: no physics, no frames requested.
+    // (Checked after every target update, so a parked aircraft wakes when its target returns.)
     const g = group.current!;
     const settled = sim.init && sim.p.distanceToSquared(sim.target) < 1e-3 && sim.v.lengthSq() < 1e-4;
     if (sim.init && settled && !g.visible && !isOnScreen(sim.target)) {
       fleetActivity.delete(cfg.id);
+      fleetScreen.delete(cfg.id);
       return;
     }
 
@@ -264,12 +460,13 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
 
       const hSpeed = Math.hypot(sim.v.x, sim.v.z);
       // VTOL transition: wing-borne above ~2 units/s.
-      if (cfg.vtol) sim.cruise = THREE.MathUtils.damp(sim.cruise, THREE.MathUtils.smoothstep(hSpeed, 1.2, 2.6), 1.6, h);
+      if (cfg.vtol) sim.cruise = THREE.MathUtils.damp(sim.cruise, Math.max(wp.orbit, THREE.MathUtils.smoothstep(hSpeed, 1.2, 2.6)), 1.6, h);
 
       // Heading: station yaw, or along the flight path for the racer / VTOL in cruise.
       const followW = Math.max(cfg.vtol ? sim.cruise : 0, (d.yawToVelocity ?? 0) * THREE.MathUtils.smoothstep(hSpeed, 0.4, 2));
       const pathYaw = Math.atan2(sim.v.x, sim.v.z);
-      const yawGoal = followW > 0.01 ? wp.yaw + wrapPi(pathYaw - wp.yaw) * followW : wp.yaw;
+      let yawGoal = followW > 0.01 ? wp.yaw + wrapPi(pathYaw - wp.yaw) * followW : wp.yaw;
+      if (followOn) yawGoal = Math.atan2(sim.subject.x - sim.p.x, sim.subject.z - sim.p.z);
       sim.yaw += THREE.MathUtils.clamp(wrapPi(yawGoal - sim.yaw) * 2.4, -d.yawRate, d.yawRate) * h;
       sim.qYaw.setFromAxisAngle(Y_AXIS, sim.yaw);
 
@@ -284,9 +481,10 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
         if (sim.vCmd.length() > d.vMax) sim.vCmd.setLength(d.vMax);
         sim.aCmd.subVectors(sim.vCmd, sim.v).multiplyScalar(d.kpVel);
         const ah = Math.hypot(sim.aCmd.x, sim.aCmd.z);
-        if (ah > aHMax) {
-          sim.aCmd.x *= aHMax / ah;
-          sim.aCmd.z *= aHMax / ah;
+        const limit = cfg.vtol ? THREE.MathUtils.lerp(aHMax, aHMax * 2.4, sim.cruise) : aHMax;
+        if (ah > limit) {
+          sim.aCmd.x *= limit / ah;
+          sim.aCmd.z *= limit / ah;
         }
         sim.aCmd.y = THREE.MathUtils.clamp(sim.aCmd.y, -0.55 * G, 0.8 * G);
 
@@ -301,7 +499,7 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
           const fx = Math.sin(sim.yaw);
           const fz = Math.cos(sim.yaw);
           const lat = sim.aCmd.x * fz - sim.aCmd.z * fx;
-          const bank = THREE.MathUtils.clamp(Math.atan2(lat, G), -0.6, 0.6);
+          const bank = THREE.MathUtils.clamp(Math.atan2(lat, G), -0.42, 0.42); // ~24°, a sane mapping-VTOL turn
           const climb = THREE.MathUtils.clamp(Math.atan2(sim.v.y, Math.max(hSpeed, 0.5)), -0.3, 0.3);
           sim.qWing.copy(sim.qYaw);
           sim.qWing.multiply(sim.qTmp.setFromAxisAngle(X_AXIS, -climb));
@@ -369,7 +567,24 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     } else st.active = null;
     // Stabilised gimbal: cancels body pitch, aims at the station's subject, follows the pointer slightly.
     sim.euler.setFromQuaternion(sim.q, "YXZ");
-    st.gimbalPitch = -sim.euler.x + wp.look + (reduce ? 0 : -frame.pointer.y * 0.15);
+    let look = wp.look;
+    if (followOn) {
+      const dh = Math.hypot(sim.subject.x - sim.p.x, sim.subject.z - sim.p.z);
+      look = THREE.MathUtils.clamp(Math.atan2(sim.p.y - sim.subject.y, Math.max(dh, 0.3)), -0.5, 1.2);
+    }
+    st.gimbalPitch = -sim.euler.x + look + (reduce ? 0 : -frame.pointer.y * 0.15);
+
+    // Publish screen position + rotor power for DOM effects (downwash on text).
+    if (g.visible && !cfg.vtol) {
+      const w = window.innerWidth;
+      const hgt = window.innerHeight;
+      scratch.ndc.copy(sim.p).project(camera);
+      const sx = ((scratch.ndc.x + 1) / 2) * w;
+      const sy2 = ((1 - scratch.ndc.y) / 2) * hgt;
+      scratch.dir.setFromMatrixColumn(camera.matrixWorld, 0).multiplyScalar(1.6).add(sim.p).project(camera);
+      const r = Math.abs(((scratch.dir.x - scratch.ndc.x) / 2) * w);
+      fleetScreen.set(cfg.id, { x: sx, y: sy2, r, power: st.lift });
+    } else fleetScreen.delete(cfg.id);
   });
 
   const Model = cfg.Model;

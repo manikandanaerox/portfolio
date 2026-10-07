@@ -58,7 +58,7 @@ export function Contact() {
         <div className="md:col-span-7 lg:col-span-6">
           <Reveal>
             <p className="font-mono text-xs text-accent">Contact</p>
-            <h2 className="display mt-3 text-4xl font-semibold leading-[1.02] md:text-[2.9rem]">{contact.headline}</h2>
+            <h2 className="display mt-3 text-[2.4rem] font-semibold leading-[1] md:text-5xl lg:text-6xl">{contact.headline}</h2>
             <p className="mt-5 max-w-[44ch] text-muted md:text-lg">{contact.sub}</p>
             <a
               href={`mailto:${profile.email}`}

@@ -1,6 +1,7 @@
 "use client";
 
 import * as THREE from "three";
+import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import type { PartKey } from "../content";
 
 /*
@@ -121,6 +122,17 @@ export function disposeAll(obj: unknown) {
 
 // ---------- geometry ----------
 
+/**
+ * Smooth shading across curves and bevels, hard edges only where faces meet
+ * at more than `crease`. Extrude geometry is non-indexed, so plain
+ * computeVertexNormals() would give one flat normal per triangle (faceted look).
+ */
+export function crease(g: THREE.BufferGeometry, angle = Math.PI / 6) {
+  const out = toCreasedNormals(g, angle);
+  g.dispose();
+  return out;
+}
+
 /** Plan polygon (x, z with +z forward) extruded upward with a soft chamfer, centred on y = 0. */
 export function extrudePlan(pts: [number, number][], height: number, bevel: number, scale = 1, curveSegments = 6) {
   const s = new THREE.Shape();
@@ -136,8 +148,7 @@ export function extrudePlan(pts: [number, number][], height: number, bevel: numb
   });
   g.rotateX(-Math.PI / 2);
   g.translate(0, -height / 2 + bevel, 0);
-  g.computeVertexNormals();
-  return g;
+  return crease(g);
 }
 
 /** Rounded plan shape from a smooth closed curve through points (for pebble-like shells). */
@@ -153,8 +164,7 @@ export function extrudeSmoothPlan(pts: [number, number][], height: number, bevel
   });
   g.rotateX(-Math.PI / 2);
   g.translate(0, -height / 2 + bevel, 0);
-  g.computeVertexNormals();
-  return g;
+  return crease(g);
 }
 
 /** Side-profile polygon (z forward, y up) extruded across X, centred on x = 0. */
@@ -171,8 +181,7 @@ export function extrudeProfile(pts: [number, number][], width: number, bevel: nu
   });
   g.translate(0, 0, -width / 2 + bevel);
   g.rotateY(Math.PI / 2); // profile z -> world z, extrusion -> world x
-  g.computeVertexNormals();
-  return g;
+  return crease(g);
 }
 
 /** Cylinder spanning two points. */
@@ -237,8 +246,7 @@ export function bladeGeometry(spec: BladeSpec) {
     const z = v.y * Math.sin(a) + v.z * Math.cos(a);
     pos.setXYZ(i, v.x, y - t * t * droop, z);
   }
-  g.computeVertexNormals();
-  return g;
+  return crease(g, Math.PI / 3);
 }
 
 /** Rotor speed -> visuals: blur disc fades in and blades fade out as the prop spins up. */
