@@ -21,7 +21,7 @@ const FLEET: AircraftConfig[] = [
     id: "camera",
     Model: CameraQuad,
     // Hovers beside the Systems heading, gimbal tilted down toward the image panel.
-    home: { capabilities: W(0.68, 0.58, 1.3, -0.6, { look: 0.6 }) },
+    home: { capabilities: W(0.7, 0.8, 1.05, -0.6, { look: 0.9 }) }, // above the image panel, camera on it
     track: 0.3,
     before: W(2.0, 0.85, 1.25, -1.2),
     after: W(2.2, 1.7, 1.1, -0.9),
@@ -37,7 +37,7 @@ const FLEET: AircraftConfig[] = [
     dyn: { maxTiltDeg: 58, kpPos: 3.0, kpVel: 5.5, vMax: 16, attRate: 30, yawRate: 4, gust: 1.3, yawToVelocity: 0.85 },
     orbit: [1.1, 0.3, 1.0, 0.75],
     orbitShape: "eight",
-    track: 0.5,
+    track: 0.25, // stays in the empty left column, clear of the About text
   },
   {
     id: "inspection",
@@ -212,7 +212,7 @@ export default function Scene() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-20 transition-opacity duration-[1400ms] ease-out-expo"
+      className="pointer-events-none fixed inset-0 z-20 transition-opacity duration-[1400ms] ease-out-expo [&_*]:!pointer-events-none"
       style={{ opacity: ready ? 1 : 0 }}
     >
       <Canvas

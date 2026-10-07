@@ -2,9 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type Variants } from "motion/react";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { DownloadSimpleIcon } from "@phosphor-icons/react";
 import { hero, profile } from "../content";
-import { scrollToId } from "../lib/scroll";
 import { heroFrame } from "../lib/heroFrame";
 import { Downwash } from "./Downwash";
 import { Img } from "./Img";
@@ -72,14 +71,14 @@ export function Hero() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, ease }}
           style={{ rotateX: tilt.rotateX, rotateY: tilt.rotateY, transformStyle: "preserve-3d" }}
-          className="relative aspect-[4/5] h-[clamp(17rem,40dvh,30rem)] md:h-[clamp(18rem,47dvh,34rem)]"
+          className="relative aspect-[4/5] h-[clamp(15rem,36dvh,28rem)] md:h-[clamp(17rem,43dvh,32rem)]"
         >
           <Img
             src={profile.photo}
             alt={`Portrait of ${profile.name}`}
             priority
             sizes="(min-width: 768px) 440px, 70vw"
-            position="50% 35%"
+            position={profile.photoPosition}
             className="absolute inset-0 rounded-[18px] shadow-[0_40px_80px_-30px_rgb(0_0_0/0.65)] ring-1 ring-line-strong"
           />
           {/* Viewfinder brackets close in like the payload camera acquiring focus */}
@@ -110,22 +109,18 @@ export function Hero() {
           {/* Letters react to the rotor downwash of the drone surveying above them. */}
           <Downwash parts={[{ text: hero.headlineStart }, { text: hero.headlineEmphasis, className: "text-accent" }]} />
         </motion.h1>
+        <motion.p variants={item} className="mt-4 max-w-[52ch] text-sm leading-relaxed text-muted md:text-lg">
+          {hero.sub}
+        </motion.p>
         <motion.div variants={item} className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => scrollToId("projects")}
-            className="group inline-flex items-center gap-2.5 whitespace-nowrap rounded-[10px] bg-accent px-6 py-3.5 text-sm font-semibold text-accent-ink transition-transform duration-300 ease-out-expo hover:-translate-y-0.5 active:translate-y-px md:text-base"
+          <a
+            href={profile.cv}
+            download
+            className="inline-flex items-center gap-2.5 whitespace-nowrap rounded-[10px] bg-accent px-6 py-3.5 text-sm font-semibold text-accent-ink transition-transform duration-300 ease-out-expo hover:-translate-y-0.5 active:translate-y-px md:text-base"
           >
-            View projects
-            <ArrowRightIcon size={17} weight="bold" className="transition-transform duration-300 group-hover:translate-x-1" />
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToId("contact")}
-            className="glass inline-flex items-center whitespace-nowrap rounded-[10px] px-6 py-3.5 text-sm font-semibold text-ink transition-colors duration-300 hover:border-line-strong active:translate-y-px md:text-base"
-          >
-            Contact
-          </button>
+            <DownloadSimpleIcon size={17} weight="bold" />
+            Download CV
+          </a>
         </motion.div>
       </motion.div>
     </section>

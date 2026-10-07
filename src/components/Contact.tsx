@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowUpIcon, CheckCircleIcon, GithubLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon, EnvelopeSimpleIcon, type Icon } from "@phosphor-icons/react";
-import { contact, profile } from "../content";
+import { ArrowUpIcon, DownloadSimpleIcon, CheckCircleIcon, GithubLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon, EnvelopeSimpleIcon, type Icon } from "@phosphor-icons/react";
+import { contact, imageCredits, profile } from "../content";
 import { scrollToId } from "../lib/scroll";
 import { Reveal } from "./Reveal";
 
@@ -66,6 +66,13 @@ export function Contact() {
             >
               {profile.email}
             </a>
+            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted">
+              <span>{profile.location}</span>
+              <a href={profile.cv} download className="inline-flex items-center gap-2 font-medium text-ink transition-colors hover:text-accent">
+                <DownloadSimpleIcon size={16} weight="bold" />
+                Download CV (PDF)
+              </a>
+            </div>
           </Reveal>
 
           <Reveal delay={0.1}>
@@ -133,9 +140,25 @@ export function Contact() {
 
       <footer className="mx-auto mt-24 w-full max-w-[1400px] px-5 pb-8 md:px-10">
         <div className="flex flex-col gap-6 border-t border-line pt-8 md:flex-row md:items-center md:gap-10">
-          <p className="text-sm text-muted">
-            © {new Date().getFullYear()} {profile.name}
-          </p>
+          <div className="text-sm text-muted">
+            <p>
+              © {new Date().getFullYear()} {profile.name}
+            </p>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-xs hover:text-ink">Image credits</summary>
+              <ul className="mt-2 grid max-w-[70ch] gap-1 text-xs">
+                {imageCredits.map((c) => (
+                  <li key={c.file}>
+                    <a href={c.source} target="_blank" rel="noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">
+                      {c.artist}
+                    </a>
+                    , {c.license}, via Wikimedia Commons
+                  </li>
+                ))}
+                <li>Other photos: Unsplash</li>
+              </ul>
+            </details>
+          </div>
           <ul className="flex items-center gap-2">
             {profile.socials.map((s) => {
               const I = SOCIAL_ICONS[s.label];

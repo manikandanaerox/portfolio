@@ -92,8 +92,8 @@ function stationRanges() {
     hero: [0, Math.max(vh * 0.12, top("about") - vh)],
     about: [top("about"), end("about")],
     anatomy: [top("anatomy"), end("anatomy")],
-    capabilities: [top("capabilities") - vh * 0.55, top("capabilities") + vh * 0.2],
-    gap: [top("capabilities") + vh * 0.75, top("journey") - vh * 1.45],
+    capabilities: [top("capabilities") - vh * 0.55, end("capabilities")],
+    gap: [end("capabilities") + vh * 0.45, top("journey") - vh * 1.45],
     journey: [top("journey") - vh * 0.6, end("journey")],
     contact: [contact, contact],
   } as Record<Station, [number, number]>;

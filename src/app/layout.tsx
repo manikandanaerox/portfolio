@@ -7,8 +7,8 @@ const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
 export const metadata: Metadata = {
-  title: `${profile.name} | ${profile.role}`,
-  description: "Portfolio of a UAV systems engineer building autonomous drones: flight control, perception and airframe design.",
+  title: `${profile.name} | Propulsion & UAV Engineering`,
+  description: "MSc Propulsion & Energetics student at ISAE-ENSMA: heat-transfer research, propulsion and CFD, and award-winning autonomous UAVs. Seeking a six-month internship from March 2027.",
 };
 
 export const viewport: Viewport = {

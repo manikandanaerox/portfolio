@@ -18,3 +18,8 @@ export function scrollToId(id: string) {
   if (lenis) lenis.scrollTo(el, { duration: 1.6 });
   else el.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth" });
 }
+
+export function scrollToY(y: number) {
+  if (lenis) lenis.scrollTo(y, { duration: 1.2 });
+  else window.scrollTo({ top: y, behavior: reducedMotion() ? "auto" : "smooth" });
+}

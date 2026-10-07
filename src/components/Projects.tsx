@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
-import { projects } from "../content";
+import { projects, type Project } from "../content";
+import { DassaultLogo } from "./DassaultLogo";
 import { Img } from "./Img";
-
-type Project = (typeof projects)[number];
 
 function ProjectCard({ p }: { p: Project }) {
   return (
@@ -19,7 +18,13 @@ function ProjectCard({ p }: { p: Project }) {
       />
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-start md:gap-10">
         <div>
-          <h3 className="display text-2xl font-semibold leading-tight md:text-[2rem]">{p.title}</h3>
+          <p className="flex items-center gap-3 font-mono text-xs text-accent">
+            <span>
+              {p.kind} <span className="text-muted">{p.when}</span>
+            </span>
+            {p.dassault && <DassaultLogo className="h-6 text-ink" />}
+          </p>
+          <h3 className="display mt-2 text-2xl font-semibold leading-tight md:text-[2rem]">{p.title}</h3>
           <p className="mt-3 max-w-[50ch] leading-relaxed text-muted">{p.summary}</p>
           <ul className="mt-5 flex flex-wrap gap-2">
             {p.tags.map((t) => (
@@ -29,13 +34,16 @@ function ProjectCard({ p }: { p: Project }) {
             ))}
           </ul>
         </div>
-        <a
-          href={p.href}
-          className="inline-flex w-fit items-center gap-2 whitespace-nowrap rounded-[10px] border border-line-strong px-4 py-2.5 text-sm font-semibold transition-colors duration-300 hover:border-accent hover:text-accent"
-        >
-          Case study
-          <ArrowUpRightIcon size={15} weight="bold" />
-        </a>
+        {/* Only shown when a real write-up exists (set `href` in content.ts). */}
+        {p.href && (
+          <a
+            href={p.href}
+            className="inline-flex w-fit items-center gap-2 whitespace-nowrap rounded-[10px] border border-line-strong px-4 py-2.5 text-sm font-semibold transition-colors duration-300 hover:border-accent hover:text-accent"
+          >
+            Case study
+            <ArrowUpRightIcon size={15} weight="bold" />
+          </a>
+        )}
       </div>
     </article>
   );
@@ -83,7 +91,7 @@ export function Projects() {
       <div className={pan ? "sticky top-0 flex h-[100dvh] flex-col justify-center overflow-hidden pt-16" : "py-24"}>
         <div className="mx-auto w-full max-w-[1400px] px-5 md:px-10">
           <p className="font-mono text-xs text-accent">Selected work</p>
-          <h2 className="display mt-3 text-[2.4rem] font-semibold leading-[1] md:text-6xl">Aircraft I have built and flown.</h2>
+          <h2 className="display mt-3 text-[2.4rem] font-semibold leading-[1] md:text-6xl">From engines to autonomy.</h2>
         </div>
         <motion.div
           ref={track}

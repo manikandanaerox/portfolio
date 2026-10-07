@@ -1,7 +1,8 @@
-import { journey } from "../content";
+import { earlier, education, journey, languages } from "../content";
+import { DassaultLogo } from "./DassaultLogo";
 import { Reveal } from "./Reveal";
 
-/* Flight log: four entries, so one hairline between rows reads as a log, not a spec table. */
+/* Flight log: four main roles, then earlier internships and education as compact rows. */
 export function Journey() {
   return (
     <section id="journey" className="relative py-24 md:py-40">
@@ -13,17 +14,48 @@ export function Journey() {
           <ol className="mt-12">
             {journey.map((j, i) => (
               <li key={j.title} className="border-t border-line py-8 first:border-t-0 first:pt-0">
-                <Reveal delay={0.05 * i} className="grid grid-cols-1 gap-3 sm:grid-cols-[7.5rem_1fr] sm:gap-8">
+                <Reveal delay={0.05 * i} className="grid grid-cols-1 gap-3 sm:grid-cols-[8.5rem_1fr] sm:gap-8">
                   <p className="font-mono text-sm text-accent">{j.when}</p>
                   <div>
                     <h3 className="text-xl font-semibold tracking-tight md:text-2xl">{j.title}</h3>
                     <p className="mt-1 text-sm text-muted">{j.where}</p>
-                    <p className="mt-3 max-w-[52ch] leading-relaxed text-muted">{j.body}</p>
+                    {"dassault" in j && j.dassault && <DassaultLogo className="mt-3 h-6 text-ink" />}
+                    <p className="mt-3 max-w-[56ch] leading-relaxed text-muted">{j.body}</p>
                   </div>
                 </Reveal>
               </li>
             ))}
           </ol>
+
+          <Reveal className="mt-4 grid grid-cols-1 gap-10 border-t border-line pt-10 sm:grid-cols-2">
+            <div>
+              <h3 className="font-mono text-sm text-accent">Earlier internships</h3>
+              <ul className="mt-4 grid gap-3">
+                {earlier.map((e) => (
+                  <li key={e.title}>
+                    <p className="font-medium leading-snug">{e.title}</p>
+                    <p className="text-sm text-muted">
+                      {e.where}, {e.when}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-mono text-sm text-accent">Education</h3>
+              <ul className="mt-4 grid gap-3">
+                {education.map((e) => (
+                  <li key={e.title}>
+                    <p className="font-medium leading-snug">{e.title}</p>
+                    <p className="text-sm text-muted">
+                      {e.where}, {e.when}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-5 text-sm text-muted">{languages}</p>
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>

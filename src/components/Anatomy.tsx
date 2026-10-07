@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { anatomy } from "../content";
+import { DassaultLogo } from "./DassaultLogo";
 
 /*
   Pinned section. The WebGL drone explodes as this section scrolls
@@ -27,8 +28,8 @@ export function Anatomy() {
       <div className="sticky top-0 flex h-[100dvh] items-end overflow-hidden md:items-center">
         <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 px-5 pb-10 md:grid-cols-12 md:px-10 md:pb-0">
           <div className="md:col-span-5 lg:col-span-4">
-            <h2 className="display text-[2.4rem] font-semibold leading-[1] md:text-6xl">Every part, chosen on purpose.</h2>
-            <p className="mt-5 max-w-[42ch] text-muted">Seven systems that have to work as one.</p>
+            <h2 className="display text-[2.4rem] font-semibold leading-[1] md:text-6xl">Every system, a part of my work.</h2>
+            <p className="mt-5 max-w-[42ch] text-muted">Scroll to take the drone apart. Each part maps to something I have designed, tested or researched.</p>
 
             {/* Desktop: full list with the active part expanded */}
             <ol className="mt-10 hidden md:block">
@@ -49,7 +50,11 @@ export function Anatomy() {
                       transition={{ duration: reduce ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
                       className="overflow-hidden"
                     >
-                      <p className="max-w-[38ch] pt-1.5 text-sm leading-relaxed text-muted">{part.note}</p>
+                      <p className="max-w-[40ch] pt-1.5 text-sm leading-relaxed text-muted">{part.note}</p>
+                      <p className="flex items-center gap-2.5 pt-2 font-mono text-xs text-accent">
+                        {part.where}
+                        {part.dassault && <DassaultLogo className="h-5 text-ink" />}
+                      </p>
                     </motion.div>
                   </li>
                 );
@@ -70,6 +75,7 @@ export function Anatomy() {
                   >
                     <p className="font-mono text-sm text-accent">{current.name}</p>
                     <p className="mt-1 text-sm leading-relaxed text-muted">{current.note}</p>
+                    <p className="mt-2 font-mono text-xs text-accent">{current.where}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
