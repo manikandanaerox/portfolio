@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { anatomy } from "../content";
 import { partScreen } from "../lib/partScreen";
 
@@ -9,6 +10,7 @@ import { partScreen } from "../lib/partScreen";
   on the WebGL drone by a leader line, like the callouts on an assembly drawing.
   Positions come from the 3D model every frame (lib/partScreen) and are written
   straight to the SVG, so React only re-renders when the active part changes.
+  Portalled to <body>: inside <main> it would sit below the WebGL canvas.
 */
 
 const R = 13; // balloon radius, px
@@ -24,6 +26,8 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
   const label = useRef<HTMLDivElement>(null);
   const activeRef = useRef(active);
   activeRef.current = active;
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useEffect(() => setHost(document.body), []);
 
   useEffect(() => {
     const el = section.current;
@@ -38,7 +42,8 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
       if (!s) return;
       const fresh = partScreen.on && performance.now() - partScreen.t < 400;
       s.style.opacity = fresh ? "1" : "0";
-      if (label.current) label.current.style.opacity = fresh && activeRef.current >= 0 ? "1" : "0";
+      // Phones name the part in the card below, so the tag is desktop-only.
+      if (label.current) label.current.style.opacity = fresh && activeRef.current >= 0 && window.innerWidth >= 768 ? "1" : "0";
       if (!fresh) return;
 
       const vw = window.innerWidth;
@@ -50,7 +55,11 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
       // Phones: the part card covers the lower half, so balloons stay above it.
       const bottom = mobile ? vh * 0.56 : vh - 32;
 
-      // Balloon = anchor pushed outward from the drone's centre, kept on screen.
+      // Balloon = anchor pushed outward from the drone's centre, at least out to a
+      // ring around the whole assembly so inner parts don't label over the airframe.
+      let ring = 0;
+      for (const a of partScreen.pts.values()) ring = Math.max(ring, Math.hypot(a.x - partScreen.cx, a.y - partScreen.cy));
+      ring *= 0.62;
       anatomy.forEach((part, i) => {
         const a = partScreen.pts.get(part.key);
         const p = pos[i];
@@ -63,12 +72,13 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
         dy /= len;
         p.ax = a.x;
         p.ay = a.y;
-        p.bx = a.x + dx * reach;
-        p.by = a.y + dy * reach;
+        const out = Math.max(len + reach, ring) - len;
+        p.bx = a.x + dx * out;
+        p.by = a.y + dy * out;
       });
       // Relax overlapping balloons apart, then clamp into the free area.
-      const min = R * 2 + 10;
-      for (let it = 0; it < 6; it++) {
+      const min = R * 2 + 16;
+      for (let it = 0; it < 10; it++) {
         for (let i = 0; i < pos.length; i++)
           for (let j = i + 1; j < pos.length; j++) {
             const a = pos[i], b = pos[j];
@@ -76,8 +86,9 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
             let dx = b.bx - a.bx, dy = b.by - a.by;
             const d = Math.hypot(dx, dy);
             if (d >= min) continue;
-            if (d < 1e-3) (dx = 1), (dy = 0);
-            const k = (min - d) / 2 / (d || 1);
+            const near = d < 1e-3;
+            if (near) (dx = 1), (dy = 0);
+            const k = (min - d) / 2 / (near ? 1 : d);
             a.bx -= dx * k; a.by -= dy * k;
             b.bx += dx * k; b.by += dy * k;
           }
@@ -117,10 +128,14 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
       // Name tag beside the active balloon, on the side facing away from the drone.
       const lp = act >= 0 ? pos[act] : null;
       if (label.current && lp?.ok) {
-        const rightSide = lp.bx >= partScreen.cx;
         const w = label.current.offsetWidth;
-        let x = rightSide ? lp.bx + R + 10 : lp.bx - R - 10 - w;
-        x = Math.min(vw - 12 - w, Math.max(12, x));
+        const rightX = lp.bx + R + 10;
+        const leftX = lp.bx - R - 10 - w;
+        // Prefer the side facing away from the drone; flip if it would leave the screen.
+        let rightSide = lp.bx >= partScreen.cx;
+        if (rightSide && rightX + w > vw - 12) rightSide = false;
+        else if (!rightSide && leftX < left) rightSide = true;
+        const x = rightSide ? rightX : leftX;
         label.current.style.transform = `translate3d(${x}px, ${lp.by - label.current.offsetHeight / 2}px, 0)`;
       }
     };
@@ -141,9 +156,10 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
       io.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [section, bound]);
+  }, [section, bound, host]);
 
-  return (
+  if (!host) return null;
+  return createPortal(
     <div aria-hidden className="pointer-events-none fixed inset-0 z-30">
       <svg ref={svg} className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-500" style={{ overflow: "visible" }}>
         {anatomy.map((part, i) => {
@@ -151,9 +167,10 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
           return (
             <g key={part.key} style={{ display: "none" }}>
               <line
-                stroke={on ? "var(--accent)" : "var(--line-strong)"}
+                stroke={on ? "var(--accent)" : "var(--muted)"}
+                strokeOpacity={on ? 1 : 0.55}
                 strokeWidth={on ? 1.5 : 1}
-                strokeDasharray={on ? undefined : "3 4"}
+                strokeDasharray={on ? undefined : "3 3"}
                 className="transition-[stroke] duration-300"
               />
               <circle r={on ? 3.5 : 2.5} fill={on ? "var(--accent)" : "var(--muted)"} />
@@ -181,6 +198,7 @@ export function AnatomyCallouts({ active, section, bound }: Props) {
       >
         {active >= 0 ? anatomy[active].name : ""}
       </div>
-    </div>
+    </div>,
+    host,
   );
 }

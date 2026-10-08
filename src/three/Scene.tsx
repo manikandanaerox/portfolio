@@ -50,11 +50,11 @@ const FLEET: AircraftConfig[] = [
     // Over the headline its downwash pushes the letters.
     home: {
       hero: W(-0.58, 0.38, 0.95, 0.6, { patrol: 1 }),
-      anatomy: [W(0.3, -0.04, 1.6, 0.4, { explode: 0.08 }), W(0.3, -0.04, 1.6, 0.4 + Math.PI * 1.15, { explode: 1 })],
+      anatomy: [W(0.32, -0.06, 1.25, 0.4, { explode: 0.08 }), W(0.32, -0.06, 1.25, 0.4 + Math.PI * 1.15, { explode: 1 })],
     },
     mobileHome: {
       hero: W(0, 0.8, 0.68, 0, { look: 0.5 }),
-      anatomy: [W(0, 0.42, 0.95, 0.4, { explode: 0.08 }), W(0, 0.42, 0.95, 0.4 + Math.PI * 1.15, { explode: 1 })],
+      anatomy: [W(0, 0.44, 0.82, 0.4, { explode: 0.08 }), W(0, 0.44, 0.82, 0.4 + Math.PI * 1.15, { explode: 1 })],
     },
     before: W(-0.58, 0.38, 0.95, 0.6),
     follow: {
