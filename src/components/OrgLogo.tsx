@@ -14,6 +14,10 @@ const LOGOS = {
   pprime: { label: "Institut Pprime", src: "/images/pprime.svg", aspect: "447/580" },
   recon: { label: "Team Reconnaissance", src: "/images/team-reconnaissance.jpg", aspect: "2/1", size: "111% auto", luminance: true },
   phoenix: { label: "Team Phoenix", src: "/images/team-phoenix.webp", aspect: "900/472", color: true },
+  isae: { label: "ISAE-ENSMA", src: "/images/isae-ensma.svg", aspect: "201/125" },
+  poitiers: { label: "Université de Poitiers", src: "/images/poitiers.svg", aspect: "665/408" },
+  // Lettering only (the dark blob behind it removed), cropped to the letters.
+  cnrs: { label: "CNRS", src: "/images/cnrs.svg", aspect: "453/190" },
 } satisfies Record<string, Logo>;
 
 type Logo = { label: string; src: string; aspect: string; size?: string; luminance?: boolean; color?: boolean };
@@ -47,7 +51,8 @@ export function OrgLogos({ org, className }: { org: OrgKey | OrgKey[] | undefine
   );
 }
 
-export function OrgLogo({ org, className = "" }: { org: OrgKey; className?: string }) {
+/** Monochrome logos take the current text colour; `className` defaults to the ink colour. */
+export function OrgLogo({ org, className = "text-ink" }: { org: OrgKey; className?: string }) {
   const logo: Logo = LOGOS[org];
   const height = `calc(var(--logo-h) * ${Math.sqrt(REF_ASPECT / ratio(logo.aspect)).toFixed(3)})`;
   if (logo.color)
@@ -60,7 +65,7 @@ export function OrgLogo({ org, className = "" }: { org: OrgKey; className?: stri
     <span
       role="img"
       aria-label={logo.label}
-      className={`inline-block shrink-0 bg-current align-middle text-ink ${className}`}
+      className={`inline-block shrink-0 bg-current align-middle ${className}`}
       style={{
         aspectRatio: logo.aspect,
         height,

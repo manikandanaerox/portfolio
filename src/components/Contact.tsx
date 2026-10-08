@@ -3,7 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpIcon, FileTextIcon, CheckCircleIcon, GithubLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon, EnvelopeSimpleIcon, type Icon } from "@phosphor-icons/react";
-import { contact, profile } from "../content";
+import { contact, profile, workedWith } from "../content";
+import { OrgLogo } from "./OrgLogo";
 import { scrollToId } from "../lib/scroll";
 import { Reveal } from "./Reveal";
 
@@ -136,6 +137,19 @@ export function Contact() {
             </AnimatePresence>
           </Reveal>
         </div>
+
+        {/* Organisations I have worked with: logos only */}
+        <Reveal delay={0.15} className="mt-20 md:col-span-5 md:col-start-8 md:mt-0 lg:col-span-5 lg:col-start-8">
+          <h3 className="text-lg font-semibold tracking-tight text-muted md:text-xl">Worked with</h3>
+          {/* Logos sit straight on the page: two loose columns, optically centred per row, muted until hovered */}
+          <ul className="mt-10 grid grid-cols-2 items-center gap-x-10 gap-y-12 md:gap-x-14 md:gap-y-14">
+            {workedWith.map((k) => (
+              <li key={k} className="flex h-[calc(var(--logo-h)*1.5)] items-center text-muted transition-colors duration-300 hover:text-ink">
+                <OrgLogo org={k} className="" />
+              </li>
+            ))}
+          </ul>
+        </Reveal>
       </div>
 
       <footer className="mx-auto mt-24 w-full max-w-[1400px] px-5 pb-28 md:px-10 md:pb-8">

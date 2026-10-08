@@ -263,6 +263,18 @@ export const toolchain: { name: string; icon?: { path: string } }[] = [
   { icon: siGnubash, name: "bash" },
 ];
 
+/** Organisations from the CV with a logo, for the contact section's logo wall. */
+export const workedWith: OrgKey[] = [
+  "dassault",
+  "pprime",
+  "cnrs",
+  "poitiers",
+  "isae",
+  "sae",
+  "recon",
+  "phoenix",
+];
+
 export const contact = {
   headline: "Hiring for March 2027?",
   sub: "I'm looking for a six-month internship in propulsion, energetics, thermal engineering, CFD or autonomous aerial systems.",
