@@ -24,6 +24,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" data-theme="dark" suppressHydrationWarning className={`${archivo.variable} ${jetbrains.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* The launch vehicle for the hero: start fetching it with the page, not after hydration. */}
+        <link rel="preload" href="/models/sls.glb" as="fetch" type="model/gltf-binary" crossOrigin="anonymous" />
       </head>
       <body>{children}</body>
     </html>

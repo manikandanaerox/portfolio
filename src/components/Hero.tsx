@@ -1,135 +1,133 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type Variants } from "motion/react";
+import { useRef, useState } from "react";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type Variants } from "motion/react";
 import { FileTextIcon, GithubLogoIcon, LinkedinLogoIcon, type Icon } from "@phosphor-icons/react";
-import { hero, profile } from "../content";
-import { heroFrame } from "../lib/heroFrame";
-import { Downwash } from "./Downwash";
+import { hero, launch, profile } from "../content";
 import { Img } from "./Img";
 
 /*
-  Opening shot: "Airframe".
-  The portrait sits in a clean centred frame. The inspection drone hovers
-  directly behind it (WebGL canvas is below the DOM), so the frame covers the
-  body and the face is never touched, while the four arms and spinning rotors
-  reach out past the frame's corners. The person is the centre of the aircraft.
+  Opening shot: a launch, scrubbed by scroll. The section pins for several
+  screens while the WebGL hero act (three/acts/Launch) runs the sequence:
+  venting on the pad, ignition, liftoff, ascent, booster separation.
+  The headline sits over the pad and clears as the engines light; a caption
+  names each launch event as it happens.
 */
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 const SOCIAL_ICONS: Record<string, Icon> = { GitHub: GithubLogoIcon, LinkedIn: LinkedinLogoIcon };
-const ICON_LINK =
-  "grid h-12 w-12 place-items-center rounded-[12px] border border-line text-ink transition duration-300 ease-out-expo hover:-translate-y-0.5 hover:border-accent hover:text-accent active:translate-y-px";
-
-/** Gentle 3D tilt of the frame toward the pointer (off for reduced motion and touch). */
-function usePointerTilt() {
-  const reduce = useReducedMotion();
-  const px = useMotionValue(0);
-  const py = useMotionValue(0);
-  useEffect(() => {
-    if (reduce || !window.matchMedia("(pointer: fine)").matches) return;
-    const onMove = (e: PointerEvent) => {
-      px.set(e.clientX / window.innerWidth - 0.5);
-      py.set(e.clientY / window.innerHeight - 0.5);
-    };
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onMove);
-  }, [reduce, px, py]);
-  const spring = { stiffness: 120, damping: 18, mass: 0.6 };
-  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-7, 7]), spring);
-  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [6, -6]), spring);
-  return { rotateX, rotateY };
+/**
+ * Portrait as an editorial vignette: black and white, cropped to head and
+ * shoulders, its edges dissolving into the night (radial mask) instead of a frame.
+ */
+const VIGNETTE = "radial-gradient(ellipse 46% 52% at 52% 40%, #000 38%, transparent 74%)";
+// Darkens the bright background around the head so only the subject emerges (page colour, so it works in both themes).
+const SHADE = "radial-gradient(ellipse 34% 40% at 53% 36%, transparent 45%, color-mix(in srgb, var(--bg) 82%, transparent) 100%)";
+function Portrait({ className }: { className: string }) {
+  return (
+    <div className={`relative shrink-0 ${className}`} style={{ maskImage: VIGNETTE, WebkitMaskImage: VIGNETTE }}>
+      <Img
+        src={profile.photo}
+        alt={`Portrait of ${profile.name}`}
+        priority
+        sizes="(min-width: 768px) 320px, 120px"
+        position="55% 20%"
+        className="h-full w-full bg-transparent [&_img]:brightness-[0.92] [&_img]:contrast-[1.15] [&_img]:grayscale"
+      />
+      <div aria-hidden className="absolute inset-0" style={{ background: SHADE }} />
+    </div>
+  );
 }
 
-const CORNERS = [
-  "left-0 top-0 border-l-2 border-t-2 rounded-tl-[6px]",
-  "right-0 top-0 border-r-2 border-t-2 rounded-tr-[6px]",
-  "left-0 bottom-0 border-l-2 border-b-2 rounded-bl-[6px]",
-  "right-0 bottom-0 border-r-2 border-b-2 rounded-br-[6px]",
-];
+const ICON_LINK =
+  "grid h-12 w-12 place-items-center rounded-[12px] border border-line-strong bg-bg/40 text-ink backdrop-blur-sm transition duration-300 ease-out-expo hover:-translate-y-0.5 hover:border-accent hover:text-accent active:translate-y-px";
 
 export function Hero() {
+  const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
-  const tilt = usePointerTilt();
-  const frameRef = useRef<HTMLDivElement>(null);
-  // The flight model reads this element's rect every frame and keeps the drone out of it.
-  useEffect(() => {
-    heroFrame.el = frameRef.current;
-    return () => {
-      heroFrame.el = null;
-    };
-  }, []);
-  const container: Variants = { show: { transition: { staggerChildren: 0.1, delayChildren: 0.35 } } };
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const introOpacity = useTransform(scrollYProgress, [0, 0.06, 0.13], [1, 1, 0]);
+  const introY = useTransform(scrollYProgress, [0, 0.13], [0, -48]);
+  const [event, setEvent] = useState(-1);
+
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    let i = -1;
+    if (p > 0.09) launch.forEach((e, k) => p >= e.at && (i = k));
+    if (i !== event) setEvent(i);
+  });
+
+  const container: Variants = { show: { transition: { staggerChildren: 0.1, delayChildren: 0.3 } } };
   const item: Variants = {
     hidden: reduce ? {} : { opacity: 0, y: 22 },
     show: { opacity: 1, y: 0, transition: { duration: 1, ease } },
   };
 
   return (
-    <section id="home" className="relative flex min-h-[100dvh] flex-col items-center justify-center px-5 pb-24 pt-[9dvh] md:pb-12 md:pt-[11dvh]">
-      {/* Portrait frame */}
-      <div ref={frameRef} style={{ perspective: 1200 }}>
+    <section id="home" ref={ref} className="relative" style={{ height: "calc(100dvh + 320vh)" }}>
+      <div id="home-stage" className="sticky top-0 h-[100dvh] overflow-hidden">
+        {/* Legibility scrim under the headline */}
         <motion.div
-          initial={reduce ? false : { opacity: 0, scale: 0.94 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2, ease }}
-          style={{ rotateX: tilt.rotateX, rotateY: tilt.rotateY, transformStyle: "preserve-3d" }}
-          className="relative aspect-[4/5] h-[clamp(13rem,31dvh,28rem)] md:h-[clamp(17rem,43dvh,32rem)]"
-        >
-          <Img
-            src={profile.photo}
-            alt={`Portrait of ${profile.name}`}
-            priority
-            sizes="(min-width: 768px) 440px, 70vw"
-            position={profile.photoPosition}
-            className="absolute inset-0 rounded-[18px] shadow-[0_40px_80px_-30px_rgb(0_0_0/0.65)] ring-1 ring-line-strong"
-          />
-          {/* Viewfinder brackets close in like the payload camera acquiring focus */}
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute -inset-3.5 md:-inset-4"
-            initial={reduce ? false : { scale: 1.14, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.1, delay: 0.7, ease }}
-          >
-            {CORNERS.map((c) => (
-              <span key={c} className={`absolute h-7 w-7 border-accent ${c}`} />
-            ))}
+          aria-hidden
+          style={{ opacity: introOpacity }}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-bg via-bg/75 to-transparent md:inset-y-0 md:left-0 md:right-auto md:h-auto md:w-[58%] md:bg-gradient-to-r"
+        />
+
+        <motion.div style={{ opacity: introOpacity, y: introY }} className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col justify-end px-5 pb-24 md:justify-center md:px-10 md:pb-0">
+          <motion.div variants={container} initial="hidden" animate="show" className="max-w-[40rem]">
+            {/* Desktop: the portrait heads the column */}
+            <motion.div variants={item} className="-mb-[8dvh] -ml-[4.5rem] hidden md:block">
+              <Portrait className="aspect-[4/5] h-[clamp(12rem,42dvh,26rem)]" />
+            </motion.div>
+            <motion.div variants={item} className="relative flex items-center gap-3">
+              {/* Phones: a small framed portrait beside the name */}
+              <Portrait className="-my-6 -ml-5 aspect-[4/5] w-[7.5rem] md:hidden" />
+              <p className="text-base font-semibold tracking-tight md:text-xl">
+                {profile.name}
+                <span className="mt-1 block font-mono text-xs font-normal text-accent md:text-sm">{profile.role}</span>
+              </p>
+            </motion.div>
+            <motion.h1 variants={item} className="display mt-4 text-[2.6rem] font-semibold leading-[1] md:text-[clamp(2.8rem,6.6dvh,3.75rem)] lg:text-[clamp(3rem,7.4dvh,4.6rem)]">
+              {hero.headlineStart} <span className="text-accent">{hero.headlineEmphasis}</span>
+            </motion.h1>
+            <motion.p variants={item} className="mt-5 max-w-[46ch] text-sm leading-relaxed text-muted md:text-lg">
+              {hero.sub}
+            </motion.p>
+            <motion.div variants={item} className="mt-7 flex flex-wrap items-center gap-3">
+              <a href={profile.cv} target="_blank" rel="noreferrer" aria-label="Open CV (PDF)" title="CV" className={ICON_LINK}>
+                <FileTextIcon size={22} weight="regular" />
+              </a>
+              {profile.socials.map((s) => {
+                const I = SOCIAL_ICONS[s.label];
+                return (
+                  <a key={s.label} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label} title={s.label} className={ICON_LINK}>
+                    {I && <I size={22} />}
+                  </a>
+                );
+              })}
+            </motion.div>
           </motion.div>
         </motion.div>
-      </div>
 
-      {/* Identity, headline, actions */}
-      <motion.div variants={container} initial="hidden" animate="show" className="mt-8 flex flex-col items-center text-center md:mt-9">
-        <motion.p variants={item} className="text-base font-semibold tracking-tight md:text-xl">
-          {profile.name}
-          <span className="mt-1 block font-mono text-xs font-normal text-accent md:ml-3 md:mt-0 md:inline md:text-sm">{profile.role}</span>
-        </motion.p>
-        <motion.h1
-          variants={item}
-          className="display mt-3 max-w-[18ch] text-[2.3rem] font-semibold leading-[1] sm:text-5xl md:max-w-none md:text-[clamp(2.6rem,4.1vw,4.4rem)]"
-        >
-          {/* Letters react to the rotor downwash of the drone surveying above them. */}
-          <Downwash parts={[{ text: hero.headlineStart }, { text: hero.headlineEmphasis, className: "text-accent" }]} />
-        </motion.h1>
-        <motion.p variants={item} className="mt-4 max-w-[52ch] text-sm leading-relaxed text-muted md:text-lg">
-          {hero.sub}
-        </motion.p>
-        <motion.div variants={item} className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          <a href={profile.cv} target="_blank" rel="noreferrer" aria-label="Open CV (PDF)" title="CV" className={ICON_LINK}>
-            <FileTextIcon size={22} weight="regular" />
-          </a>
-          {profile.socials.map((s) => {
-            const I = SOCIAL_ICONS[s.label];
-            return (
-              <a key={s.label} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label} title={s.label} className={ICON_LINK}>
-                {I && <I size={22} />}
-              </a>
-            );
-          })}
-        </motion.div>
-      </motion.div>
+        {/* Launch events, named as they happen */}
+        <div aria-live="polite" className="pointer-events-none absolute bottom-24 left-5 md:bottom-10 md:left-10">
+          <AnimatePresence mode="wait">
+            {event >= 0 && (
+              <motion.p
+                key={event}
+                initial={reduce ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduce ? undefined : { opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease }}
+                className="font-mono text-xs text-ink md:text-sm"
+              >
+                <span className="text-accent">{String(event + 1).padStart(2, "0")}</span>
+                <span className="ml-3">{launch[event].label}</span>
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </section>
   );
 }

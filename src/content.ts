@@ -7,10 +7,7 @@ import type { OrgKey } from "./components/OrgLogo";
 /*
   All site copy, taken from Manikandan_Shanmugam_Resume_Aerospace_General.pdf
   and the LinkedIn profile export (public/manikandan.pdf).
-  Only the portrait is still a placeholder.
 */
-
-const unsplash = (id: string, w: number, h: number) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
 
 export const profile = {
   name: "Manikandan Shanmugam",
@@ -28,10 +25,19 @@ export const profile = {
   ],
 };
 
+/** Hero launch sequence: captions keyed to scroll progress through the hero. */
+export const launch = [
+  { at: 0.0, label: "Artemis II on the pad" },
+  { at: 0.12, label: "RS-25 ignition" },
+  { at: 0.195, label: "Booster ignition, liftoff" },
+  { at: 0.45, label: "Max Q" },
+  { at: 0.77, label: "Booster separation" },
+];
+
 export const hero = {
   headlineStart: "Propulsion engineer.",
   headlineEmphasis: "Drone builder.",
-  sub: "MSc Propulsion & Energetics at ISAE-ENSMA. Seeking a six-month internship from March 2027.",
+  sub: "MSc Propulsion & Energetics, ISAE-ENSMA. Rocket and aircraft engines, heat transfer, CFD and drones. Internship from March 2027.",
 };
 
 export const about = {
@@ -53,81 +59,128 @@ export const about = {
   ] satisfies { year: string; logo: OrgKey; title: string; detail: string }[],
 };
 
+/** Parts of the inspection quad (used by its 3D model). */
 export type PartKey = "props" | "motors" | "frame" | "fc" | "battery" | "gps" | "gimbal";
 
-/* Each drone system maps to a real piece of work from the CV. */
-export const anatomy: { key: PartKey; name: string; note: string; where: string; dassault?: boolean }[] = [
-  { key: "props", dassault: true, name: "Propulsion design", note: "Designed the propulsion system and ran the CFD optimisation for our award-winning VTOL.", where: "ENSMAERO, Dassault UAV Challenge 2026" },
-  { key: "motors", name: "Energetics", note: "Cycle analysis of a precooled ATREX engine and H₂/O₂ combustion modelling in Cantera.", where: "ISAE-ENSMA, 2025 - 2026" },
-  { key: "frame", name: "Structures", note: "CAD in SolidWorks and CATIA, FEA, and 3D-printed parts for lighter airframes.", where: "Team Phoenix, 2022 - 2025" },
-  { key: "fc", name: "Flight control", note: "A custom flight controller with automatic PID tuning, and an MCP server that flies ArduPilot from plain language.", where: "Personal projects" },
-  { key: "battery", name: "Thermal management", note: "Two-phase loop thermosyphons for passive cooling, studied experimentally with high-speed visualisation.", where: "Institut Pprime, 2026" },
-  { key: "gps", name: "Navigation & missions", note: "Mission planning, mapping and 100+ flight hours, validated first in Gazebo and ArduPilot SITL.", where: "Four years of flight testing" },
-  { key: "gimbal", name: "Onboard compute", note: "Jetson Nano companion computers and Python pipelines for flight-test data.", where: "Team Reconnaissance, 2024 - 2025" },
-];
+/*
+  The four chapters. Each is a pinned section: scrolling steps through `steps`
+  while the matching 3D scene (three/acts/*) moves to that step's focus.
+*/
+export type Step = { title: string; body: string; meta: string; logo?: OrgKey; command?: string };
+export type Chapter = { id: ChapterId; nav: string; title: string; lead: string; steps: Step[] };
+export type ChapterId = "rocket" | "propulsion" | "uav";
 
-export const capabilities = [
-  { image: "/images/turbofan-cf6.jpg", title: "Propulsion & energetics", body: "Thermodynamic cycle analysis, combustion thermochemistry with Cantera, gas dynamics and engine performance." },
-  { image: "/images/wind-tunnel.jpg", title: "CFD & aerodynamics", body: "Supersonic and nozzle flows in STAR-CCM+ and ANSYS Fluent, plus finite-volume solvers written from scratch." },
-  { image: "/images/thermal-imaging.jpg", title: "Heat transfer & experiments", body: "Two-phase thermal systems, instrumentation, high-speed flow visualisation and MATLAB post-processing." },
-  { image: "/images/vtol-swift.jpg", title: "UAV design & flight test", body: "Fixed-wing, VTOL and multirotor platforms, from CAD and FEA to 3D printing and 100+ flight hours." },
-  { image: unsplash("1518770660439-4636190af475", 1100, 1300), title: "Flight control & embedded", body: "ArduPilot, MAVLink, Pixhawk and SpeedyBee, Jetson Nano, ESP32; UART, I2C, SPI, CAN and PWM." },
-  { image: unsplash("1635070041078-e363dbe005cb", 1100, 1300), title: "Software & numerical methods", body: "Python (NumPy, SciPy, Pandas), MATLAB, C/C++ and Fortran, with Git, Linux and bash." },
-];
-
-export type Project = { title: string; summary: string; tags: string[]; image: string; kind: string; when: string; href?: string; dassault?: boolean };
-
-export const projects: Project[] = [
-  {
-    kind: "Competition",
-    when: "2025 - 2026",
-    dassault: true,
-    title: "Autonomous VTOL 4+1, Dassault UAV Challenge",
-    summary: "A modular 2 m wingspan VTOL that made the top 6 finalists and won the Jury's Favourite Award. I designed the propulsion system, ran the CFD optimisation and integrated the flight controller.",
-    tags: ["VTOL", "Propulsion", "CFD", "SpeedyBee F405", "Python", "C++"],
-    image: "/images/vtol-deltaquad.jpg",
+export const chapters: Record<ChapterId, Chapter> = {
+  rocket: {
+    id: "rocket",
+    nav: "Propulsion",
+    title: "My propulsion work.",
+    lead: "Engines are what I study and what I want to build. This is what I have done so far.",
+    steps: [
+      {
+        title: "Trained on engines",
+        body: "I'm in the second year of an MSc in Aeronautics and Space at ISAE-ENSMA, majoring in propulsion and energetics: combustion, gas dynamics, heat transfer, propulsion systems and numerical methods.",
+        meta: "ISAE-ENSMA, 2025 - 2027",
+      },
+      {
+        title: "I model combustion",
+        body: "I built a Python and Cantera model of hydrogen/oxygen combustion at rocket-chamber conditions, from 0.1 to 10⁴ MPa, and validated it against the analytical 3,498 K flame temperature.",
+        meta: "Python, Cantera",
+      },
+      {
+        title: "I run experiments",
+        body: "Five months at Institut Pprime on two-phase heat transfer: I improved the test rig, filmed the flow at high speed and wrote the MATLAB analysis. I'm co-authoring the journal manuscript.",
+        meta: "Institut Pprime, 2026",
+        logo: "pprime",
+      },
+      {
+        title: "I simulate supersonic flow",
+        body: "In STAR-CCM+ I've run nozzle flows at pressure ratios of 8 and 12, a Mach 4 double-wedge airfoil and a Busemann biplane, separating wave drag from viscous drag.",
+        meta: "STAR-CCM+",
+      },
+      {
+        title: "I write my own tools",
+        body: "A finite-volume solver for transient conduction in a sphere, checked by von Neumann analysis and mesh refinement, and a MATLAB and Fortran interface for multi-sensor thermal tests.",
+        meta: "Fortran, MATLAB, Python",
+      },
+    ],
   },
-  {
-    kind: "Academic",
-    when: "Apr 2026",
-    title: "ATREX precooled air-breathing engine",
-    summary: "Full cycle analysis of a liquid-hydrogen ATREX engine at 12,000 m and Mach 3, then a flight domain showing a four-engine vehicle can reach 30 km at Mach 5 to 6.",
-    tags: ["Cycle analysis", "Hydrogen", "Hypersonics"],
-    image: "/images/sabre-engine.jpg",
+  propulsion: {
+    id: "propulsion",
+    nav: "ATREX study",
+    title: "My ATREX engine study.",
+    lead: "A complete engine analysis I did at ISAE-ENSMA: a hydrogen air-turbo-ramjet, from the intake to the flight envelope.",
+    steps: [
+      {
+        title: "The brief",
+        body: "Take a precooled air-turbo-ramjet burning liquid hydrogen, fly it at 12,000 m and Mach 3, and find out what it can do. I worked the whole cycle, station by station.",
+        meta: "ISAE-ENSMA, Apr 2026",
+      },
+      {
+        title: "Intake and precooler",
+        body: "I worked out the ram compression and the hydrogen precooling that lets the fan take in cold, dense air.",
+        meta: "Intake, precooler",
+      },
+      {
+        title: "Fan and tip turbine",
+        body: "I matched the fan to its compressor map and balanced it against the hydrogen-driven tip turbine that powers it.",
+        meta: "Compressor map, turbine",
+      },
+      {
+        title: "Combustor and heat exchanger",
+        body: "I closed the energy balance through the combustion chamber and the heat exchanger that warms the hydrogen before it drives the turbine.",
+        meta: "Combustion chamber, heat exchanger",
+      },
+      {
+        title: "Nozzle and performance",
+        body: "At the nozzle exit I computed the thrust, specific impulse and efficiencies of the full cycle.",
+        meta: "Thrust, Isp, efficiencies",
+      },
+      {
+        title: "My answer: Mach 5 to 6 at 30 km",
+        body: "With thrust, drag and temperature limits I built the flight domain: four of these engines can take a vehicle to 30 km and Mach 5 to 6.",
+        meta: "Flight-domain analysis",
+      },
+    ],
   },
-  {
-    kind: "Academic",
-    when: "Apr 2026",
-    title: "Supersonic CFD: diamond airfoil, Busemann biplane, nozzles",
-    summary: "Mach 4 double-wedge airfoil with Euler and Spalart-Allmaras models to separate wave and viscous drag, plus a Busemann biplane and nozzle flows at pressure ratios of 8 and 12.",
-    tags: ["STAR-CCM+", "Supersonic", "Turbulence"],
-    image: "/images/schlieren-t38.jpg",
+  uav: {
+    id: "uav",
+    nav: "UAV",
+    title: "Four years in the air.",
+    lead: "Autonomous aircraft I have designed, built, programmed and flown.",
+    steps: [
+      {
+        title: "Top 6 at the Dassault UAV Challenge",
+        body: "Our modular 4+1 VTOL with a 2 m span made the top 6 finalists and won the Jury's Favourite Award. I owned propulsion design, CFD optimisation and sensor integration on a SpeedyBee F405.",
+        meta: "ENSMAERO, 2025 - 2026",
+        logo: "dassault",
+      },
+      {
+        title: "Team Phoenix, SAE 2024",
+        body: "I founded and captained a 20-member team, award winner in the payload category of the SAE Autonomous Drone Development Challenge: CAD, FEA, 3D printing and flight test.",
+        meta: "Loyola-ICAM, 2022 - 2025",
+        logo: "sae",
+      },
+      {
+        title: "A flight controller that tunes itself",
+        body: "A custom quadcopter flight controller with automatic PID tuning of its control loops, for plug-and-fly setup.",
+        meta: "Personal project",
+      },
+      {
+        title: "Flying by plain language",
+        body: "A Python server that turns LLM tool calls into MAVLink commands for an ArduPilot drone: telemetry, arming, take-off, waypoints, landing and return-to-launch, tested in SITL.",
+        meta: "Python, pymavlink, ArduPilot SITL",
+        command: "take off to 10 m, then fly the survey",
+      },
+      {
+        title: "VTOL R&D and 100+ flight hours",
+        body: "At Team Reconnaissance: autonomous VTOLs on Holybro with a Jetson Nano, flight-test campaigns and Python data pipelines. EU certified pilot, A1/A3.",
+        meta: "Team Reconnaissance, 2024 - 2025",
+        logo: "recon",
+      },
+    ],
   },
-  {
-    kind: "Ongoing",
-    when: "Now",
-    title: "Pixhawk MCP server: natural-language drone control",
-    summary: "A Python server that turns LLM tool calls into MAVLink commands for an ArduPilot drone: telemetry, arming, take-off, GPS waypoints, landing and return-to-launch, tested in SITL.",
-    tags: ["Python", "pymavlink", "ArduPilot SITL"],
-    image: unsplash("1581092918056-0c4c3acd3789", 1400, 900),
-  },
-  {
-    kind: "Team",
-    when: "2022 - 2025",
-    title: "Team Phoenix, autonomous drones",
-    summary: "Founded and captained a 20-member UAV team that won an award at the SAE Autonomous Drone Development Challenge 2024, taking drones from CAD and FEA to flight test.",
-    tags: ["Leadership", "SolidWorks", "FEA", "Gazebo"],
-    image: "/images/drone-team.jpg",
-  },
-  {
-    kind: "Academic",
-    when: "2025 - 2026",
-    title: "H₂/O₂ combustion thermochemistry",
-    summary: "Stoichiometric hydrogen-oxygen combustion for rocket conditions: adiabatic flame temperature, equilibrium and dissociation from 0.1 to 10⁴ MPa, checked against an analytical 3,498 K.",
-    tags: ["Python", "Cantera", "Rocket propulsion"],
-    image: "/images/rs25-hotfire.jpg",
-  },
-];
+};
 
 export const journey: { when: string; title: string; where: string; body: string; logo?: OrgKey }[] = [
   {
@@ -163,6 +216,12 @@ export const journey: { when: string; title: string; where: string; body: string
 export const leadership = [
   { when: "2023 - 2025", title: "Joint Secretary, ISHRAE Chennai Chapter", where: "500+ member student body; HVAC, energy and aerospace workshops and industry talks" },
   { when: "2023 - 2025", title: "3D Printing Student Lead", where: "LICET Fablab; fabrication workshops and maker events" },
+];
+
+export const otherProjects = [
+  { when: "Apr 2026", title: "Supersonic CFD", where: "Mach 4 double-wedge airfoil, Busemann biplane, nozzle flows (STAR-CCM+)" },
+  { when: "Dec 2025", title: "Transient conduction solver", where: "Finite-volume sphere with angle-dependent convection, von Neumann stability" },
+  { when: "2025 - 2026", title: "Automated thermal test interface", where: "MATLAB and Fortran GUI, multi-sensor acquisition and live plots" },
 ];
 
 export const earlier = [
@@ -208,16 +267,3 @@ export const contact = {
   headline: "Hiring for March 2027?",
   sub: "I'm looking for a six-month internship in propulsion, energetics, thermal engineering, CFD or autonomous aerial systems.",
 };
-
-// Image credits (Wikimedia Commons). CC BY-SA images require attribution; shown in the footer.
-export const imageCredits = [
-  { file: "vtol-deltaquad.jpg", artist: "Sander Smeets", license: "CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:DeltaQuad_VTOL_surveillance_UAV.jpg" },
-  { file: "sabre-engine.jpg", artist: "Science Museum London / Science and Society Picture Library", license: "CC BY-SA 2.0", source: "https://commons.wikimedia.org/wiki/File:SABRE_engine_designed_for_Skylon_spaceplane,_1990s._(9660572897).jpg" },
-  { file: "schlieren-t38.jpg", artist: "Leonard Weinstein / NASA", license: "Public domain", source: "https://commons.wikimedia.org/wiki/File:Schlieren_photograph_of_T-38_shock_waves.jpg" },
-  { file: "rs25-hotfire.jpg", artist: "NASA & Aerojet Rocketdyne", license: "Public domain", source: "https://commons.wikimedia.org/wiki/File:RS-25_Engine_Hot_Fire_Test.jpg" },
-  { file: "drone-team.jpg", artist: "U.S. Air Force 501CSW by Senior Airman Adam Enbal", license: "Public domain", source: "https://commons.wikimedia.org/wiki/File:Team_USA_competes_at_international_drone_competition_(9954560).jpg" },
-  { file: "turbofan-cf6.jpg", artist: "Unknown", license: "Public domain", source: "https://commons.wikimedia.org/wiki/File:CF-6_TURBOFAN_ENGINE_-_NARA_-_17475341.jpg" },
-  { file: "thermal-imaging.jpg", artist: "Mister rf", license: "CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:RAKON_STP2734B_LF_OCXO_Thermal_Imaging.jpg" },
-  { file: "vtol-swift.jpg", artist: "Ka04iso10", license: "CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:Swift020_flying_in_Kobe_Merikenpark.jpg" },
-  { file: "wind-tunnel.jpg", artist: "NASA Ames Research Center / NASA", license: "Public domain", source: "https://commons.wikimedia.org/wiki/File:SCAT-16;_Variable_Sweep_Model_in_40x80_Wind_Tunnel_at_NASA_Ames_(AC-31300).jpg" },
-];

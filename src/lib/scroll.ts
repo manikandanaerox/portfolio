@@ -1,5 +1,5 @@
 import Lenis from "lenis";
-import { reducedMotion } from "./layout";
+import { reducedMotion } from "./stage";
 
 let lenis: Lenis | null = null;
 

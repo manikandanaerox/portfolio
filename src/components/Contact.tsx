@@ -3,9 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpIcon, FileTextIcon, CheckCircleIcon, GithubLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon, EnvelopeSimpleIcon, type Icon } from "@phosphor-icons/react";
-import { contact, imageCredits, profile } from "../content";
+import { contact, profile } from "../content";
 import { scrollToId } from "../lib/scroll";
-import { DroneBay } from "./DroneBay";
 import { Reveal } from "./Reveal";
 
 const SOCIAL_ICONS: Record<string, Icon> = { GitHub: GithubLogoIcon, LinkedIn: LinkedinLogoIcon, YouTube: YoutubeLogoIcon };
@@ -54,10 +53,9 @@ export function Contact() {
   });
 
   return (
-    <section id="contact" className="relative flex min-h-[100dvh] flex-col justify-between pt-6 md:pt-36">
+    <section id="contact" className="relative flex min-h-[100dvh] flex-col justify-between pt-24 md:pt-36">
       <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 px-5 md:grid-cols-12 md:px-10">
         <div className="md:col-span-7 lg:col-span-6">
-          <DroneBay id="contact" />
           <Reveal>
             <p className="font-mono text-xs text-accent">Contact</p>
             <h2 className="display mt-3 text-[2.4rem] font-semibold leading-[1] md:text-5xl lg:text-6xl">{contact.headline}</h2>
@@ -146,20 +144,7 @@ export function Contact() {
             <p>
               © {new Date().getFullYear()} {profile.name}
             </p>
-            <details className="mt-2">
-              <summary className="cursor-pointer text-xs hover:text-ink">Image credits</summary>
-              <ul className="mt-2 grid max-w-[70ch] gap-1 text-xs">
-                {imageCredits.map((c) => (
-                  <li key={c.file}>
-                    <a href={c.source} target="_blank" rel="noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">
-                      {c.artist}
-                    </a>
-                    , {c.license}, via Wikimedia Commons
-                  </li>
-                ))}
-                <li>Other photos: Unsplash</li>
-              </ul>
-            </details>
+            <p className="mt-2 text-xs">All 3D scenes are drawn live in the browser, from my own models.</p>
           </div>
           <ul className="flex items-center gap-2">
             {profile.socials.map((s) => {

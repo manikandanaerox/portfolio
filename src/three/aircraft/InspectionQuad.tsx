@@ -6,7 +6,6 @@ import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import type { PartKey } from "../../content";
 import { crease, type AircraftState } from "../kit";
-import { partScreen } from "../../lib/partScreen";
 
 /*
   Industrial inspection quadcopter (Matrice / Astro class), built procedurally.
@@ -271,13 +270,12 @@ export function InspectionQuad({ state }: { state: React.RefObject<AircraftState
 
   const { mat, geo, sleeveQuats } = assets;
 
-  const parts = useRef<{ obj: THREE.Object3D; base: THREE.Vector3; data: PartData; pop: number; anchor?: THREE.Vector3 }[]>([]);
+  const parts = useRef<{ obj: THREE.Object3D; base: THREE.Vector3; data: PartData; pop: number }[]>([]);
   const reg = (data: PartData) => (obj: THREE.Object3D | null) => {
     if (!obj || parts.current.some((p) => p.obj === obj)) return;
     parts.current.push({ obj, base: obj.position.clone(), data, pop: 0 });
   };
-  const root = useRef<THREE.Group>(null);
-  const callout = useMemo(() => ({ w: new THREE.Vector3(), c: new THREE.Vector3(), box: new THREE.Box3() }), []);
+
 
   const rotors = useRef<THREE.Group[]>([]);
   const strobes = useRef<THREE.Mesh[]>([]);
@@ -312,45 +310,10 @@ export function InspectionQuad({ state }: { state: React.RefObject<AircraftState
 
     if (gimbal.current) gimbal.current.rotation.x = THREE.MathUtils.damp(gimbal.current.rotation.x, st.gimbalPitch, 12, dt);
 
-    // Exploded-view callouts: publish each part's screen position. For parts that
-    // come in fours (motors, props, arms) the instance furthest from the drone's
-    // centre on screen is labelled, so leader lines radiate outward cleanly.
-    let shown = st.explode > 0.35;
-    for (let o: THREE.Object3D | null = root.current; o && shown; o = o.parent) if (!o.visible) shown = false;
-    if (!shown || !root.current) {
-      partScreen.on = false;
-      return;
-    }
-    const { w, c, box } = callout;
-    const W2 = s.size.width / 2;
-    const H2 = s.size.height / 2;
-    const toPx = (v: THREE.Vector3) => (v.project(s.camera), { x: (v.x + 1) * W2, y: (1 - v.y) * H2 });
-    const centre = toPx(root.current.getWorldPosition(c));
-    partScreen.cx = centre.x;
-    partScreen.cy = centre.y;
-    const best = new Map<PartKey, number>();
-    for (const p of parts.current) {
-      const key = p.data.key;
-      if (key === "cover" || key === "gear") continue;
-      if (!p.anchor) {
-        // Bounding-box centre in the part's own space, measured once.
-        p.obj.updateWorldMatrix(true, true);
-        box.setFromObject(p.obj);
-        p.anchor = p.obj.worldToLocal(box.getCenter(new THREE.Vector3()));
-      }
-      const pt = toPx(p.obj.localToWorld(w.copy(p.anchor)));
-      const d = Math.hypot(pt.x - centre.x, pt.y - centre.y);
-      if (d >= (best.get(key) ?? -1)) {
-        best.set(key, d);
-        partScreen.pts.set(key, pt);
-      }
-    }
-    partScreen.t = performance.now();
-    partScreen.on = true;
   });
 
   return (
-    <group ref={root}>
+    <group>
       {/* ---------- fuselage, hinges, sensors (frame) ---------- */}
       <group ref={reg({ key: "frame", dir: [0, 0, 0] })}>
         <mesh geometry={geo.fuselage} material={mat.composite} />

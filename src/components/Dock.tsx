@@ -3,20 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type MotionValue } from "motion/react";
 import {
-  HouseIcon, UserIcon, CubeIcon, LightningIcon, SquaresFourIcon, PathIcon, PaperPlaneTiltIcon, SunIcon, MoonIcon,
+  RocketLaunchIcon, UserIcon, FlameIcon, FanIcon, DroneIcon, PathIcon, PaperPlaneTiltIcon, SunIcon, MoonIcon,
   type Icon,
 } from "@phosphor-icons/react";
-import { SECTION_IDS, type SectionId } from "../lib/layout";
+import { SECTION_IDS, type SectionId } from "../lib/stage";
 import { scrollToId } from "../lib/scroll";
 import { setTheme, useTheme } from "../lib/theme";
 
 const ITEMS: { id: SectionId; label: string; icon: Icon }[] = [
-  { id: "home", label: "Home", icon: HouseIcon },
+  { id: "home", label: "Launch", icon: RocketLaunchIcon },
   { id: "about", label: "About", icon: UserIcon },
-  { id: "anatomy", label: "Airframe", icon: CubeIcon },
-  { id: "capabilities", label: "Systems", icon: LightningIcon },
-  { id: "projects", label: "Projects", icon: SquaresFourIcon },
-  { id: "journey", label: "Flight log", icon: PathIcon },
+  { id: "rocket", label: "Propulsion", icon: FlameIcon },
+  { id: "propulsion", label: "ATREX study", icon: FanIcon },
+  { id: "uav", label: "UAV", icon: DroneIcon },
+  { id: "journey", label: "Experience", icon: PathIcon },
   { id: "contact", label: "Contact", icon: PaperPlaneTiltIcon },
 ];
 
