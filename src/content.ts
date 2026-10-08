@@ -20,7 +20,10 @@ export const profile = {
   email: "manikandan.mechx@gmail.com",
   location: "Poitiers, France",
   cv: "/Manikandan_Shanmugam_Resume_Aerospace_General.pdf",
-  socials: [{ label: "LinkedIn", href: "https://www.linkedin.com/in/manikandan-s-801250227" }],
+  socials: [
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/manikandanaerox" },
+    { label: "GitHub", href: "https://github.com/manikandanaerox" },
+  ],
 };
 
 export const hero = {

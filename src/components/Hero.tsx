@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type Variants } from "motion/react";
-import { DownloadSimpleIcon } from "@phosphor-icons/react";
+import { FileTextIcon, GithubLogoIcon, LinkedinLogoIcon, type Icon } from "@phosphor-icons/react";
 import { hero, profile } from "../content";
 import { heroFrame } from "../lib/heroFrame";
 import { Downwash } from "./Downwash";
@@ -17,6 +17,10 @@ import { Img } from "./Img";
 */
 
 const ease = [0.16, 1, 0.3, 1] as const;
+
+const SOCIAL_ICONS: Record<string, Icon> = { GitHub: GithubLogoIcon, LinkedIn: LinkedinLogoIcon };
+const ICON_LINK =
+  "grid h-12 w-12 place-items-center rounded-[12px] border border-line text-ink transition duration-300 ease-out-expo hover:-translate-y-0.5 hover:border-accent hover:text-accent active:translate-y-px";
 
 /** Gentle 3D tilt of the frame toward the pointer (off for reduced motion and touch). */
 function usePointerTilt() {
@@ -113,14 +117,17 @@ export function Hero() {
           {hero.sub}
         </motion.p>
         <motion.div variants={item} className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          <a
-            href={profile.cv}
-            download
-            className="inline-flex items-center gap-2.5 whitespace-nowrap rounded-[10px] bg-accent px-6 py-3.5 text-sm font-semibold text-accent-ink transition-transform duration-300 ease-out-expo hover:-translate-y-0.5 active:translate-y-px md:text-base"
-          >
-            <DownloadSimpleIcon size={17} weight="bold" />
-            Download CV
+          <a href={profile.cv} target="_blank" rel="noreferrer" aria-label="Open CV (PDF)" title="CV" className={ICON_LINK}>
+            <FileTextIcon size={22} weight="regular" />
           </a>
+          {profile.socials.map((s) => {
+            const I = SOCIAL_ICONS[s.label];
+            return (
+              <a key={s.label} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label} title={s.label} className={ICON_LINK}>
+                {I && <I size={22} />}
+              </a>
+            );
+          })}
         </motion.div>
       </motion.div>
     </section>

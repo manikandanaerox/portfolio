@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowUpIcon, DownloadSimpleIcon, CheckCircleIcon, GithubLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon, EnvelopeSimpleIcon, type Icon } from "@phosphor-icons/react";
+import { ArrowUpIcon, FileTextIcon, CheckCircleIcon, GithubLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon, EnvelopeSimpleIcon, type Icon } from "@phosphor-icons/react";
 import { contact, imageCredits, profile } from "../content";
 import { scrollToId } from "../lib/scroll";
 import { Reveal } from "./Reveal";
@@ -68,9 +68,9 @@ export function Contact() {
             </a>
             <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted">
               <span>{profile.location}</span>
-              <a href={profile.cv} download className="inline-flex items-center gap-2 font-medium text-ink transition-colors hover:text-accent">
-                <DownloadSimpleIcon size={16} weight="bold" />
-                Download CV (PDF)
+              <a href={profile.cv} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-medium text-ink transition-colors hover:text-accent">
+                <FileTextIcon size={16} weight="bold" />
+                View CV (PDF)
               </a>
             </div>
           </Reveal>
