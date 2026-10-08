@@ -18,24 +18,23 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 const SOCIAL_ICONS: Record<string, Icon> = { GitHub: GithubLogoIcon, LinkedIn: LinkedinLogoIcon };
 /**
- * Portrait as an editorial vignette: black and white, cropped to head and
- * shoulders, its edges dissolving into the night (radial mask) instead of a frame.
+ * Crew-badge portrait: full colour, tightly cropped to head and shoulders, in a
+ * clean rounded card (like a mission crew portrait beside the vehicle). The
+ * zoom crops out most of the busy greenhouse background behind the subject.
  */
-const VIGNETTE = "radial-gradient(ellipse 46% 52% at 52% 40%, #000 38%, transparent 74%)";
-// Darkens the bright background around the head so only the subject emerges (page colour, so it works in both themes).
-const SHADE = "radial-gradient(ellipse 34% 40% at 53% 36%, transparent 45%, color-mix(in srgb, var(--bg) 82%, transparent) 100%)";
 function Portrait({ className }: { className: string }) {
   return (
-    <div className={`relative shrink-0 ${className}`} style={{ maskImage: VIGNETTE, WebkitMaskImage: VIGNETTE }}>
-      <Img
-        src={profile.photo}
-        alt={`Portrait of ${profile.name}`}
-        priority
-        sizes="(min-width: 768px) 320px, 120px"
-        position="55% 20%"
-        className="h-full w-full bg-transparent [&_img]:brightness-[0.92] [&_img]:contrast-[1.15] [&_img]:grayscale"
-      />
-      <div aria-hidden className="absolute inset-0" style={{ background: SHADE }} />
+    <div className={`relative shrink-0 overflow-hidden rounded-[16px] shadow-[0_24px_50px_-24px_rgb(0_0_0/0.75)] ring-1 ring-line-strong ${className}`}>
+      <div className="h-full w-full origin-[52%_28%] scale-[1.55]">
+        <Img
+          src={profile.photo}
+          alt={`Portrait of ${profile.name}`}
+          priority
+          sizes="(min-width: 768px) 320px, 180px"
+          position="52% 22%"
+          className="h-full w-full"
+        />
+      </div>
     </div>
   );
 }
@@ -75,19 +74,15 @@ export function Hero() {
 
         <motion.div style={{ opacity: introOpacity, y: introY }} className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col justify-end px-5 pb-24 md:justify-center md:px-10 md:pb-0">
           <motion.div variants={container} initial="hidden" animate="show" className="max-w-[40rem]">
-            {/* Desktop: the portrait heads the column */}
-            <motion.div variants={item} className="-mb-[8dvh] -ml-[4.5rem] hidden md:block">
-              <Portrait className="aspect-[4/5] h-[clamp(12rem,42dvh,26rem)]" />
-            </motion.div>
-            <motion.div variants={item} className="relative flex items-center gap-3">
-              {/* Phones: a small framed portrait beside the name */}
-              <Portrait className="-my-6 -ml-5 aspect-[4/5] w-[7.5rem] md:hidden" />
-              <p className="text-base font-semibold tracking-tight md:text-xl">
+            {/* Portrait and name read as one unit, like a crew portrait with its caption */}
+            <motion.div variants={item} className="flex items-end gap-4 md:gap-5">
+              <Portrait className="aspect-[4/5] w-[5.5rem] md:w-[clamp(7.5rem,15dvh,10rem)]" />
+              <p className="pb-1 text-lg font-semibold tracking-tight md:text-2xl">
                 {profile.name}
-                <span className="mt-1 block font-mono text-xs font-normal text-accent md:text-sm">{profile.role}</span>
+                <span className="mt-1.5 block font-mono text-xs font-normal text-accent md:text-sm">{profile.role}</span>
               </p>
             </motion.div>
-            <motion.h1 variants={item} className="display mt-4 text-[2.6rem] font-semibold leading-[1] md:text-[clamp(2.8rem,6.6dvh,3.75rem)] lg:text-[clamp(3rem,7.4dvh,4.6rem)]">
+            <motion.h1 variants={item} className="display mt-6 text-[2.6rem] font-semibold leading-[1] md:text-[clamp(2.8rem,6.6dvh,3.75rem)] lg:text-[clamp(3rem,7.4dvh,4.6rem)]">
               {hero.headlineStart} <span className="text-accent">{hero.headlineEmphasis}</span>
             </motion.h1>
             <motion.p variants={item} className="mt-5 max-w-[46ch] text-sm leading-relaxed text-muted md:text-lg">

@@ -3,11 +3,9 @@
 import { useRef } from "react";
 import { motion, useScroll, useSpring } from "motion/react";
 import { earlier, education, journey, languages, leadership, otherProjects } from "../content";
-import { OrgLogo } from "./OrgLogo";
+import { OrgLogos } from "./OrgLogo";
 import { Reveal } from "./Reveal";
 
-// Wordmarks are wide, Pprime's mark is tall: per-logo heights keep them optically matched.
-const LOGO_HEIGHT = { dassault: "h-6", sae: "h-8", dgac: "h-9", pprime: "h-12", recon: "h-7" } as const;
 
 /*
   Experience: the main roles on a trajectory rail that draws itself as you
@@ -35,7 +33,7 @@ export function Journey() {
                   <div>
                     <h3 className="text-xl font-semibold tracking-tight md:text-2xl">{j.title}</h3>
                     <p className="mt-1 text-sm text-muted">{j.where}</p>
-                    {j.logo && <OrgLogo org={j.logo} className={`mt-4 text-ink ${LOGO_HEIGHT[j.logo]}`} />}
+                    <OrgLogos org={j.logo} className="mt-5" />
                     <p className="mt-3 max-w-[56ch] leading-relaxed text-muted">{j.body}</p>
                   </div>
                 </Reveal>

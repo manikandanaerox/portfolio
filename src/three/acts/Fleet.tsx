@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, type ComponentType, type RefObject } from "react";
+import { Suspense, useMemo, useRef, type ComponentType, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
@@ -13,6 +13,7 @@ import { InspectionQuad } from "../aircraft/InspectionQuad";
 import { Vtol } from "../aircraft/Vtol";
 import { AgriHex } from "../aircraft/AgriHex";
 import { isPortrait, stepOf, type ActProps } from "./common";
+import { PhoenixDecal } from "./PhoenixDecal";
 
 /*
   UAV: the one section the drones own. The whole fleet shares the stage; each
@@ -48,6 +49,7 @@ type Craft = {
   pattern?: Pattern;
   orbit?: [number, number, number, number]; // ax, ay, az, rad/s
   exhibit?: boolean;
+  phoenix?: boolean; // easter egg: Team Phoenix decal on the top cover
 };
 
 const FLEET: Craft[] = [
@@ -56,7 +58,7 @@ const FLEET: Craft[] = [
     dyn: { maxTiltDeg: 24, kpPos: 2.4, kpVel: 3.4, vMax: 16, attRate: 10, yawRate: 1.8, gust: 0.7 },
   },
   {
-    id: "agri", Model: AgriHex, feature: 1, slot: 1, yaw: -2.6, size: 1.25,
+    id: "agri", Model: AgriHex, feature: 1, slot: 1, yaw: -2.6, size: 1.25, phoenix: true,
     dyn: { maxTiltDeg: 20, kpPos: 1.7, kpVel: 2.6, vMax: 7, attRate: 8, yawRate: 0.9, gust: 0.75 },
   },
   {
@@ -84,6 +86,7 @@ const STAGE_WIDE: [number, number] = [0.34, -0.05];
 const STAGE_TALL: [number, number] = [0, 0.4];
 
 const ENTRY_FROM = [-1.9, 1.9, -1.9, 1.9, 1.9];
+const CAM_POS: [number, number, number] = [0, 3.2, 9];
 
 function Aircraft({ craft, seed, stage }: { craft: Craft; seed: number; stage: RefObject<HTMLElement> }) {
   const group = useRef<THREE.Group>(null);
@@ -274,17 +277,21 @@ function Aircraft({ craft, seed, stage }: { craft: Craft; seed: number; stage: R
   return (
     <group ref={group}>
       <Model state={state} />
+      {craft.phoenix && (
+        <Suspense fallback={null}>
+          <PhoenixDecal width={0.21} position={[0, 0.247, 0.13]} rotation={[-Math.PI / 2, 0, Math.PI]} />
+        </Suspense>
+      )}
     </group>
   );
 }
 
 export function FleetAct({ stage }: ActProps) {
-  const camera = useThree((s) => s.camera);
-  // Elevated chase-cam view: aircraft read from above, level.
-  useFrame(() => camera.lookAt(0, 0, 0));
   return (
     <>
-      <PerspectiveCamera makeDefault fov={35} near={0.1} far={50} position={[0, 3.2, 9]} />
+      {/* Elevated chase-cam view looking at the origin; aim set up front so every aircraft
+          projects its screen setpoint through the final camera from the first frame */}
+      <PerspectiveCamera makeDefault fov={35} near={0.1} far={50} position={CAM_POS} rotation={[-Math.atan2(CAM_POS[1], CAM_POS[2]), 0, 0]} />
       <Environment files="/hdri/studio_small_09_1k.hdr" environmentIntensity={0.9} />
       <ambientLight intensity={0.25} />
       <directionalLight position={[4, 6, 5]} intensity={1.6} />

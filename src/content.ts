@@ -54,9 +54,9 @@ export const about = {
   ],
   awards: [
     { year: "2026", logo: "dassault", title: "Dassault UAV Challenge", detail: "Top 6 finalist and Prix Coup de cœur du jury (Jury's Favourite Award), ENSMAERO team" },
-    { year: "2024", logo: "sae", title: "SAE Autonomous Drone Development Challenge", detail: "Award winner, payload category, as founder and captain of Team Phoenix" },
+    { year: "2024", logo: ["sae", "phoenix"], title: "SAE Autonomous Drone Development Challenge", detail: "Award winner, payload category, as founder and captain of Team Phoenix" },
     { year: "EU", logo: "dgac", title: "Certified Drone Pilot (DGAC)", detail: "EU Drone Pilot Certificate, A1/A3 Open Category" },
-  ] satisfies { year: string; logo: OrgKey; title: string; detail: string }[],
+  ] satisfies { year: string; logo: OrgKey | OrgKey[]; title: string; detail: string }[],
 };
 
 /** Parts of the inspection quad (used by its 3D model). */
@@ -66,7 +66,7 @@ export type PartKey = "props" | "motors" | "frame" | "fc" | "battery" | "gps" | 
   The four chapters. Each is a pinned section: scrolling steps through `steps`
   while the matching 3D scene (three/acts/*) moves to that step's focus.
 */
-export type Step = { title: string; body: string; meta: string; logo?: OrgKey; command?: string };
+export type Step = { title: string; body: string; meta: string; logo?: OrgKey | OrgKey[]; command?: string };
 export type Chapter = { id: ChapterId; nav: string; title: string; lead: string; steps: Step[] };
 export type ChapterId = "rocket" | "propulsion" | "uav";
 
@@ -75,33 +75,33 @@ export const chapters: Record<ChapterId, Chapter> = {
     id: "rocket",
     nav: "Propulsion",
     title: "My propulsion work.",
-    lead: "Engines are what I study and what I want to build. This is what I have done so far.",
+    lead: "What I have studied and worked on in propulsion so far.",
     steps: [
       {
-        title: "Trained on engines",
-        body: "I'm in the second year of an MSc in Aeronautics and Space at ISAE-ENSMA, majoring in propulsion and energetics: combustion, gas dynamics, heat transfer, propulsion systems and numerical methods.",
+        title: "MSc in propulsion and energetics",
+        body: "Second year of the MSc in Aeronautics and Space at ISAE-ENSMA, with coursework in propulsion systems, combustion, gas dynamics, heat transfer and numerical methods.",
         meta: "ISAE-ENSMA, 2025 - 2027",
       },
       {
-        title: "I model combustion",
-        body: "I built a Python and Cantera model of hydrogen/oxygen combustion at rocket-chamber conditions, from 0.1 to 10⁴ MPa, and validated it against the analytical 3,498 K flame temperature.",
-        meta: "Python, Cantera",
+        title: "Hydrogen/oxygen combustion study",
+        body: "A course project in Python and Cantera on stoichiometric H₂/O₂ combustion at rocket conditions: adiabatic flame temperature, equilibrium and dissociation from 0.1 to 10⁴ MPa, cross-checked against an analytical estimate of 3,498 K.",
+        meta: "Python, Cantera, 2025 - 2026",
       },
       {
-        title: "I run experiments",
-        body: "Five months at Institut Pprime on two-phase heat transfer: I improved the test rig, filmed the flow at high speed and wrote the MATLAB analysis. I'm co-authoring the journal manuscript.",
+        title: "Research internship in heat transfer",
+        body: "Five months at Institut Pprime on two-phase loop thermosyphons: improving the test rig, high-speed flow visualisation and MATLAB analysis of heat-transfer coefficients. Co-authoring the resulting manuscript, now under internal review.",
         meta: "Institut Pprime, 2026",
         logo: "pprime",
       },
       {
-        title: "I simulate supersonic flow",
-        body: "In STAR-CCM+ I've run nozzle flows at pressure ratios of 8 and 12, a Mach 4 double-wedge airfoil and a Busemann biplane, separating wave drag from viscous drag.",
-        meta: "STAR-CCM+",
+        title: "Supersonic CFD",
+        body: "STAR-CCM+ simulations of a Mach 4 double-wedge airfoil (Euler and Spalart-Allmaras, to separate wave and viscous drag), a Busemann biplane at incidence, and nozzle flows at pressure ratios of 8 and 12.",
+        meta: "STAR-CCM+, Apr 2026",
       },
       {
-        title: "I write my own tools",
-        body: "A finite-volume solver for transient conduction in a sphere, checked by von Neumann analysis and mesh refinement, and a MATLAB and Fortran interface for multi-sensor thermal tests.",
-        meta: "Fortran, MATLAB, Python",
+        title: "Numerical and test tools",
+        body: "An explicit finite-volume solver for transient conduction in a sphere, with its stability limit from von Neumann analysis and mesh-refinement checks, and a MATLAB and Fortran interface for multi-sensor thermal tests.",
+        meta: "Fortran, MATLAB, 2025 - 2026",
       },
     ],
   },
@@ -159,7 +159,7 @@ export const chapters: Record<ChapterId, Chapter> = {
         title: "Team Phoenix, SAE 2024",
         body: "I founded and captained a 20-member team, award winner in the payload category of the SAE Autonomous Drone Development Challenge: CAD, FEA, 3D printing and flight test.",
         meta: "Loyola-ICAM, 2022 - 2025",
-        logo: "sae",
+        logo: ["sae", "phoenix"],
       },
       {
         title: "A flight controller that tunes itself",
@@ -182,7 +182,7 @@ export const chapters: Record<ChapterId, Chapter> = {
   },
 };
 
-export const journey: { when: string; title: string; where: string; body: string; logo?: OrgKey }[] = [
+export const journey: { when: string; title: string; where: string; body: string; logo?: OrgKey | OrgKey[] }[] = [
   {
     when: "Mar - Jul 2026",
     logo: "pprime",
@@ -206,7 +206,7 @@ export const journey: { when: string; title: string; where: string; body: string
   },
   {
     when: "Nov 2022 - Aug 2025",
-    logo: "sae",
+    logo: ["sae", "phoenix"],
     title: "Founder & Team Captain, Team Phoenix",
     where: "Loyola-ICAM College of Engineering and Technology, SAE Autonomous Drone Design Challenge",
     body: "Built and led a 20-member UAV team through CAD, FEA, 3D printing and flight test of autonomous drones. Also captained Team Turbonites LICET at SAE ADDC 2024-2025, managing timeline, resources and competition prep, and flew as team drone pilot: pre-flight checks, mission planning, mapping and 100+ flight hours.",

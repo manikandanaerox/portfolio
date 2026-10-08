@@ -1,6 +1,6 @@
 import { about, profile } from "../content";
 import { Img } from "./Img";
-import { OrgLogo } from "./OrgLogo";
+import { OrgLogos } from "./OrgLogo";
 import { Reveal } from "./Reveal";
 
 const CORNERS = [
@@ -56,7 +56,7 @@ export function About() {
           <ul className="grid gap-8 md:grid-cols-3 md:gap-10">
             {about.awards.map((a) => (
               <li key={a.title} className="border-l border-accent pl-5">
-                <OrgLogo org={a.logo} className={`block text-ink ${a.logo === "dassault" ? "h-7" : "h-9"}`} />
+                <OrgLogos org={a.logo} className="min-h-[calc(var(--logo-h)*1.45)]" />
                 <p className="mt-4 font-mono text-xs text-accent">{a.year}</p>
                 <p className="mt-1 font-medium leading-snug">{a.title}</p>
                 <p className="mt-1 text-sm text-muted">{a.detail}</p>

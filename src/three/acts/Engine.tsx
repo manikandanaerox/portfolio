@@ -318,7 +318,7 @@ export function EngineAct({ stage }: ActProps) {
     dampV(rig.tgt, rig.wantT, 3.2, dt);
     camera.position.copy(rig.pos);
     camera.lookAt(rig.tgt);
-    composeView(camera, 0.2, 0.27);
+    composeView(camera, 0.27, 0.27);
     if (engine.current && plume.current) {
       local.copy(camera.position);
       engine.current.worldToLocal(local);

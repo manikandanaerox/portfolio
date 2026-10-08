@@ -152,3 +152,24 @@ body {
   outline-offset: 3px;
   border-radius: 6px;
 }
+
+/* One logo size for the whole site (components/OrgLogo scales each mark to equal area from this). */
+:root {
+  --logo-h: 40px;
+}
+@media (min-width: 768px) {
+  :root {
+    --logo-h: 48px;
+  }
+}
+
+/* Full-colour logos on black (Team Phoenix): black drops out on the dark theme, sits on a dark badge on the light one. */
+.logo-color {
+  mix-blend-mode: screen;
+}
+[data-theme="light"] .logo-color {
+  mix-blend-mode: normal;
+  background: #0d0e10;
+  border-radius: 8px;
+  padding: 4px 6px;
+}

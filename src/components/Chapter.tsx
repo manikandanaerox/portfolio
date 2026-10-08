@@ -5,13 +5,14 @@ import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScro
 import { chapters, type ChapterId } from "../content";
 import { STEP_VH } from "../lib/stage";
 import { scrollToY } from "../lib/scroll";
-import { OrgLogo } from "./OrgLogo";
+import { OrgLogos } from "./OrgLogo";
 
 /*
   A pinned chapter. The section is n steps tall; its stage sticks to the viewport
   while the WebGL act (three/acts, drawn into #<id>-stage) follows the same scroll
-  progress. Desktop: numbered step list on the left, scene on the right.
-  Phones: scene on top, the active step as a card below.
+  progress. The active step is the content: a large title and readable body,
+  with a small clickable step index above it. Desktop: text left, scene right.
+  Phones: scene on top, text below.
 */
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -53,96 +54,58 @@ export function Chapter({ id, extra }: Props) {
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 hidden w-[52%] bg-gradient-to-r from-bg from-30% via-bg/80 to-transparent md:block" />
 
         <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col justify-end px-5 pb-24 md:justify-center md:px-10 md:pb-0">
-          <div className="md:max-w-[27rem] lg:max-w-[30rem]">
-            <h2 className="display text-[2.1rem] font-semibold leading-[1.02] md:text-5xl lg:text-6xl">{ch.title}</h2>
-            <p className="mt-3 max-w-[42ch] text-sm leading-relaxed text-muted md:mt-4 md:text-base">{ch.lead}</p>
+          <div className="md:max-w-[34rem] lg:max-w-[38rem]">
+            {/* Section title: a quiet label for the chapter; the active step carries the weight */}
+            <h2 className="text-lg font-semibold tracking-tight text-muted md:text-xl">{ch.title}</h2>
 
-            {/* Desktop: every step, numbered, the active one open */}
-            <ol className="relative mt-8 hidden md:block">
-              <span aria-hidden className="absolute bottom-3 left-[0.95rem] top-3 w-px bg-line" />
+            {/* Step index: numbers you can click, with the active one marked */}
+            <nav aria-label={`${ch.nav} steps`} className="mt-4 flex items-center gap-1 md:mt-6">
               {ch.steps.map((st, i) => {
                 const on = i === active;
                 return (
-                  <li key={st.title} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => goTo(i)}
-                      aria-current={on ? "step" : undefined}
-                      className="group grid w-full grid-cols-[2rem_1fr] items-start gap-3 py-1.5 text-left"
-                    >
-                      <span
-                        className={`relative grid h-[1.9rem] w-[1.9rem] place-items-center rounded-full border font-mono text-[11px] transition-colors duration-300 ${
-                          on ? "border-accent bg-accent text-accent-ink" : "border-line-strong bg-bg text-muted group-hover:text-ink"
-                        }`}
-                      >
-                        {num(i)}
-                      </span>
-                      <span className="pt-[0.2rem]">
-                        <span className={`block font-medium tracking-tight transition-colors duration-300 ${on ? "text-lg text-ink" : "text-muted group-hover:text-ink"}`}>
-                          {st.title}
-                        </span>
-                        <motion.span
-                          initial={false}
-                          animate={{ height: on ? "auto" : 0, opacity: on ? 1 : 0 }}
-                          transition={{ duration: reduce ? 0 : 0.5, ease }}
-                          className="block overflow-hidden"
-                        >
-                          <StepDetail step={st} />
-                          {on && extra?.(scrollYProgress, i)}
-                        </motion.span>
-                      </span>
-                    </button>
-                  </li>
+                  <button
+                    key={st.title}
+                    type="button"
+                    onClick={() => goTo(i)}
+                    aria-label={st.title}
+                    aria-current={on ? "step" : undefined}
+                    className="group relative px-2 py-2 first:pl-0"
+                  >
+                    <span className={`font-mono text-sm transition-colors duration-300 ${on ? "text-accent" : i < active ? "text-ink/60" : "text-muted/60 group-hover:text-ink"}`}>
+                      {num(i)}
+                    </span>
+                    {on && <motion.span layoutId={`${id}-tick`} className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-accent group-first:left-0" />}
+                  </button>
                 );
               })}
-            </ol>
+            </nav>
 
-            {/* Phones: step rail + the active step */}
-            <div className="mt-5 md:hidden">
-              <div className="flex gap-1" aria-hidden>
-                {ch.steps.map((st, i) => (
-                  <span key={st.title} className={`h-[3px] flex-1 rounded-full transition-colors duration-300 ${i <= active ? "bg-accent" : "bg-line-strong"}`} />
-                ))}
-              </div>
-              <div className="mt-4 min-h-[11rem]" aria-live="polite">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={active}
-                    initial={reduce ? false : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={reduce ? undefined : { opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3, ease }}
-                  >
-                    <p className="font-mono text-xs text-accent">
-                      {num(active)} / {step.meta}
+            {/* The active step, large */}
+            <div className="mt-5 min-h-[17rem] md:mt-8 md:min-h-[22rem]" aria-live="polite">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={active}
+                  initial={reduce ? false : { opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduce ? undefined : { opacity: 0, y: -12 }}
+                  transition={{ duration: 0.45, ease }}
+                >
+                  <p className="font-mono text-xs text-accent md:text-sm">{step.meta}</p>
+                  <h3 className="display mt-3 text-[2rem] font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-[3.6rem]">{step.title}</h3>
+                  <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-ink/80 md:mt-6 md:text-lg lg:text-xl lg:leading-relaxed">{step.body}</p>
+                  {step.command && (
+                    <p className="mt-5 w-fit rounded-[10px] border border-line bg-surface px-3.5 py-2.5 font-mono text-sm text-ink">
+                      <span className="text-accent">&gt;</span> {step.command}
                     </p>
-                    <h3 className="mt-1.5 text-xl font-semibold tracking-tight">{step.title}</h3>
-                    <StepDetail step={step} compact />
-                    {extra?.(scrollYProgress, active)}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
+                  )}
+                  <OrgLogos org={step.logo} className="mt-7" />
+                  {extra?.(scrollYProgress, active)}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function StepDetail({ step, compact }: { step: (typeof chapters)[ChapterId]["steps"][number]; compact?: boolean }) {
-  return (
-    <>
-      <span className="block max-w-[44ch] pt-1.5 text-sm leading-relaxed text-muted">{step.body}</span>
-      {step.command && (
-        <span className="mt-3 block w-fit rounded-[10px] border border-line bg-surface px-3 py-2 font-mono text-xs text-ink">
-          <span className="text-accent">&gt;</span> {step.command}
-        </span>
-      )}
-      <span className="flex items-center gap-3 pt-2.5 font-mono text-xs text-accent">
-        {!compact && step.meta}
-        {step.logo && <OrgLogo org={step.logo} className={`text-ink ${step.logo === "pprime" ? "h-8" : step.logo === "dassault" ? "h-5" : "h-6"}`} />}
-      </span>
-    </>
   );
 }

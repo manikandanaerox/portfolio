@@ -9,6 +9,7 @@ import { useTheme } from "../../lib/theme";
 import { clamp01, pinProgress, reducedMotion, smootherstep } from "../../lib/stage";
 import { PLUME_FRAG, PLUME_VERT, plumeUniforms } from "./shaders";
 import type { ActProps } from "./common";
+import { PhoenixDecal } from "./PhoenixDecal";
 import { SKY_FRAG, SKY_VERT, skyUniforms } from "./launch/sky";
 import { concrete, ground, puff } from "./launch/textures";
 
@@ -666,6 +667,8 @@ export function LaunchAct({ stage }: ActProps) {
       <group ref={vehicle} position={[0, ML_H, 0]}>
         <Suspense fallback={null}>
           <VehiclePart names={CORE} />
+          {/* Easter egg: a small Team Phoenix mark on the core stage, low down, facing the tracking camera */}
+          <PhoenixDecal width={0.17} radius={0.336} angle={0.57} position={[0, (-4250 - BASE) * S, 0]} brightness={0.8} />
         </Suspense>
         <pointLight ref={engineLight} position={[0, -0.6, 0]} distance={40} decay={1.4} color="#ffb26b" intensity={0} />
         <mesh ref={plumeCore} geometry={geo.plumeCore} material={mat.plumeCore} position={[0, RS25_Y, 0]} renderOrder={5} />
