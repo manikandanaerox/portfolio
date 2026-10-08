@@ -22,6 +22,12 @@ import { heroFrame, pointerTrack, trackPointer } from "../lib/heroFrame";
 
   VTOL: above transition speed the wing takes the load, lift rotors park,
   the pusher spools up, the nose follows the flight path and turns are banked.
+
+  Phones: a single text column leaves no empty side to fly in, so each aircraft
+  gets a "bay", an empty band reserved in its section (<div id="bay-…">). The
+  aircraft flies in from the side as the bay scrolls up, then rides with it:
+  physics runs in bay-local screen space and the bay's scroll offset is added at
+  render time, so it never lags onto the text however fast the page is flung.
 */
 
 // ---------- waypoints & stations ----------
@@ -52,6 +58,8 @@ export type AircraftConfig = {
   Model: ComponentType<{ state: React.RefObject<AircraftState> }>;
   home: Partial<Record<Station, Home>>;
   mobileHome?: Partial<Record<Station, Home>>;
+  /** Phone layout: hover in this bay (bay-local NDC, y = 0 is the bay centre), arriving from `from`. */
+  bay?: { id: string; home: Waypoint; from: Waypoint; orbit?: [number, number, number, number] };
   before: Waypoint; // where it waits before its first station
   after: Waypoint; // where it leaves to after its last station
   dyn: Dynamics;
@@ -127,6 +135,14 @@ function sample(keys: Key[], sy: number, out: Waypoint) {
   const b = keys[i + 1];
   const t = THREE.MathUtils.smootherstep(sy, a.y, b.y);
   for (const f of FIELDS) out[f] = a.wp[f] + (b.wp[f] - a.wp[f]) * t;
+}
+
+/** Bay centre in NDC (y up), or null when the bay isn't in the DOM. */
+function bayCenter(el: HTMLElement | null) {
+  if (!el || !el.isConnected) return null;
+  const r = el.getBoundingClientRect();
+  if (r.height === 0) return null; // hidden at this breakpoint
+  return 1 - ((r.top + r.height / 2) / window.innerHeight) * 2;
 }
 
 // ---------- render-on-demand bookkeeping ----------
@@ -255,7 +271,8 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     [],
   );
 
-  const scratch = useMemo(() => ({ ndc: new THREE.Vector3(), dir: new THREE.Vector3(), fwd: new THREE.Vector3() }), []);
+  const scratch = useMemo(() => ({ ndc: new THREE.Vector3(), dir: new THREE.Vector3(), fwd: new THREE.Vector3(), shift: new THREE.Vector3(), up: new THREE.Vector3(), tmp: new THREE.Vector3() }), []);
+  const bayEl = useRef<HTMLElement | null>(null);
 
   /**
    * Waypoint -> world. x/y are the screen position (NDC); s sets distance along
@@ -276,6 +293,14 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     return scratch.ndc.z < 1 && Math.abs(scratch.ndc.x) < 1.6 && Math.abs(scratch.ndc.y) < 1.7;
   };
 
+  /** World offset that moves a point at p's depth by dy in NDC (straight up the screen). */
+  const screenShift = (p: THREE.Vector3, dy: number, out: THREE.Vector3) => {
+    camera.getWorldDirection(scratch.fwd);
+    const depth = scratch.tmp.subVectors(p, camera.position).dot(scratch.fwd);
+    const halfH = depth * Math.tan(THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov / 2));
+    return out.copy(scratch.up.setFromMatrixColumn(camera.matrixWorld, 1)).multiplyScalar(dy * halfH);
+  };
+
   useFrame((frame, delta) => {
     const dt = Math.min(delta, 0.1); // substepped below, so long frames stay accurate
     const mobile = viewport.aspect < 0.85;
@@ -285,7 +310,27 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
       cache.current = { version: layout.version, mobile, keys, landY: stationRanges().contact[0] };
     }
     const sy = window.scrollY;
-    sample(cache.current.keys, sy, wp);
+
+    // Phone bay: waypoint is bay-local; `bayY` is where the bay centre sits on screen.
+    let bayY = 0;
+    let bayLand = 0;
+    const bay = mobile && cfg.bay ? cfg.bay : null;
+    if (bay) {
+      if (!bayEl.current?.isConnected) bayEl.current = document.getElementById(bay.id);
+      const c = bayCenter(bayEl.current);
+      bayY = c ?? -4;
+      // Arrive as the bay rises from below the fold; settled once it's in the lower third.
+      const arrive = THREE.MathUtils.smootherstep(bayY, -1.55, -0.45);
+      for (const f of FIELDS) wp[f] = bay.from[f] + (bay.home[f] - bay.from[f]) * arrive;
+      // Landing aircraft touch down once the bay reaches the middle of the screen.
+      bayLand = THREE.MathUtils.clamp((bayY + 0.7) / 0.45, 0, 1);
+    } else sample(cache.current.keys, sy, wp);
+
+    // Exploded view: come apart within the first few percent of the anatomy section,
+    // so every part can be labelled while the list steps through them.
+    const an = layout.sections.anatomy;
+    const anP = an ? (sy - an.top) / Math.max(1, an.height - layout.vh) : -1;
+    if (cfg.exhibit && anP >= 0 && anP <= 1) wp.explode = Math.max(wp.explode, THREE.MathUtils.smoothstep(anP, 0.005, 0.06));
 
     // Cursor tracking: lean the station toward the pointer, bounded so the aircraft
     // stays in its own part of the layout. Off on the exploded bench and when idle.
@@ -311,18 +356,19 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     toWorld(wp, fit, sim.target);
 
     // Landing commitment: 1 once the page reaches the contact station.
-    const canLand = !!cfg.landing && !!landWp && !mobile;
-    const landW = canLand ? THREE.MathUtils.clamp(1 - Math.max(0, cache.current.landY - sy) / (layout.vh * 0.6), 0, 1) : 0;
+    const canLand = !!cfg.landing && (bay ? true : !!landWp && !mobile);
+    const landW = !canLand ? 0 : bay ? bayLand : THREE.MathUtils.clamp(1 - Math.max(0, cache.current.landY - sy) / (layout.vh * 0.6), 0, 1);
     const wantLanded = landW > 0.97;
     if (canLand) {
-      toWorld(landWp!, fit, sim.landAt);
+      toWorld(bay ? bay.home : landWp!, fit, sim.landAt);
       // Arrive above the pad, then descend; the setpoint goes below the pad so contact is detected.
       if (landW > 0) sim.target.y += wantLanded ? -0.25 : (1 - landW) * 0.9;
     }
 
     // Racer: never parked, it carves lines around its station.
-    if (cfg.orbit && wp.orbit > 0 && !reduce) {
-      const [ax, ay, az, w] = cfg.orbit;
+    const orbit = bay ? bay.orbit : cfg.orbit;
+    if (orbit && wp.orbit > 0 && !reduce) {
+      const [ax, ay, az, w] = orbit;
       const t = sim.t * w;
       if (cfg.orbitShape === "circle") {
         sim.target.x += Math.sin(t) * ax * wp.orbit;
@@ -429,7 +475,8 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     // (Checked after every target update, so a parked aircraft wakes when its target returns.)
     const g = group.current!;
     const settled = sim.init && sim.p.distanceToSquared(sim.target) < 1e-3 && sim.v.lengthSq() < 1e-4;
-    if (sim.init && settled && !g.visible && !isOnScreen(sim.target)) {
+    const targetSeen = isOnScreen(bay ? scratch.dir.copy(sim.target).add(screenShift(sim.target, bayY, scratch.shift)) : sim.target);
+    if (sim.init && settled && !g.visible && !targetSeen) {
       fleetActivity.delete(cfg.id);
       fleetScreen.delete(cfg.id);
       return;
@@ -540,10 +587,11 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     }
 
     g.position.copy(sim.p);
+    if (bay) g.position.add(screenShift(sim.p, bayY, scratch.shift));
     g.quaternion.copy(sim.q);
 
     // Skip drawing aircraft outside the frame (with margin for wingspan).
-    g.visible = isOnScreen(sim.p);
+    g.visible = isOnScreen(g.position);
     // Request frames while visible and moving; a landed, spooled-down aircraft is static.
     const idleOnPad = sim.landed && sim.spool < 0.02;
     if ((g.visible && !idleOnPad) || !settled) fleetActivity.add(cfg.id);
@@ -552,6 +600,7 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     if (pad.current && padMat.current) {
       pad.current.visible = landW > 0.01;
       pad.current.position.set(sim.landAt.x, sim.landAt.y - (cfg.landing?.gearDrop ?? 0.5), sim.landAt.z);
+      if (bay) pad.current.position.add(screenShift(sim.landAt, bayY, scratch.shift));
       padMat.current.opacity = landW * 0.5;
     }
 
@@ -560,9 +609,9 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     st.explode = sim.explode;
     st.cruise = cfg.vtol ? sim.cruise : 0;
     st.lift = sim.spool * (cfg.vtol ? 1 - sim.cruise : 1) * (exhibit > 0.5 ? 1 : 0.9 + 0.1 * Math.sqrt(sim.thrust / G));
-    const an = layout.sections.anatomy;
-    if (cfg.exhibit && an && sim.explode > 0.55) {
-      const pr = THREE.MathUtils.clamp((sy - an.top) / Math.max(1, an.height - layout.vh), 0, 0.999);
+    // Same mapping as components/Anatomy.tsx.
+    if (cfg.exhibit && an && sim.explode > 0.55 && anP >= 0.06) {
+      const pr = THREE.MathUtils.clamp((anP - 0.06) / 0.94, 0, 0.999);
       st.active = anatomy[Math.floor(pr * anatomy.length)].key;
     } else st.active = null;
     // Stabilised gimbal: cancels body pitch, aims at the station's subject, follows the pointer slightly.
@@ -578,10 +627,10 @@ export function Aircraft({ cfg, seed }: { cfg: AircraftConfig; seed: number }) {
     if (g.visible && !cfg.vtol) {
       const w = window.innerWidth;
       const hgt = window.innerHeight;
-      scratch.ndc.copy(sim.p).project(camera);
+      scratch.ndc.copy(g.position).project(camera);
       const sx = ((scratch.ndc.x + 1) / 2) * w;
       const sy2 = ((1 - scratch.ndc.y) / 2) * hgt;
-      scratch.dir.setFromMatrixColumn(camera.matrixWorld, 0).multiplyScalar(1.6).add(sim.p).project(camera);
+      scratch.dir.setFromMatrixColumn(camera.matrixWorld, 0).multiplyScalar(1.6).add(g.position).project(camera);
       const r = Math.abs(((scratch.dir.x - scratch.ndc.x) / 2) * w);
       fleetScreen.set(cfg.id, { x: sx, y: sy2, r, power: st.lift });
     } else fleetScreen.delete(cfg.id);

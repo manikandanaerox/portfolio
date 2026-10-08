@@ -67,7 +67,7 @@ export function Hero() {
   };
 
   return (
-    <section id="home" className="relative flex min-h-[100dvh] flex-col items-center justify-center px-5 pb-10 pt-[12dvh] md:pb-12 md:pt-[11dvh]">
+    <section id="home" className="relative flex min-h-[100dvh] flex-col items-center justify-center px-5 pb-24 pt-[9dvh] md:pb-12 md:pt-[11dvh]">
       {/* Portrait frame */}
       <div ref={frameRef} style={{ perspective: 1200 }}>
         <motion.div
@@ -75,7 +75,7 @@ export function Hero() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, ease }}
           style={{ rotateX: tilt.rotateX, rotateY: tilt.rotateY, transformStyle: "preserve-3d" }}
-          className="relative aspect-[4/5] h-[clamp(15rem,36dvh,28rem)] md:h-[clamp(17rem,43dvh,32rem)]"
+          className="relative aspect-[4/5] h-[clamp(13rem,31dvh,28rem)] md:h-[clamp(17rem,43dvh,32rem)]"
         >
           <Img
             src={profile.photo}
@@ -104,7 +104,7 @@ export function Hero() {
       <motion.div variants={container} initial="hidden" animate="show" className="mt-8 flex flex-col items-center text-center md:mt-9">
         <motion.p variants={item} className="text-base font-semibold tracking-tight md:text-xl">
           {profile.name}
-          <span className="ml-3 font-mono text-xs font-normal text-accent md:text-sm">{profile.role}</span>
+          <span className="mt-1 block font-mono text-xs font-normal text-accent md:ml-3 md:mt-0 md:inline md:text-sm">{profile.role}</span>
         </motion.p>
         <motion.h1
           variants={item}

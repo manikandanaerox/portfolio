@@ -1,13 +1,15 @@
 import { about } from "../content";
+import { DroneBay } from "./DroneBay";
 import { OrgLogo } from "./OrgLogo";
 import { Reveal } from "./Reveal";
 
 export function About() {
   return (
-    <section id="about" className="relative flex min-h-[100dvh] items-center py-24 md:py-32">
+    <section id="about" className="relative flex min-h-[100dvh] items-center pb-24 pt-6 md:py-32">
       <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 px-5 md:grid-cols-12 md:px-10">
         {/* Left columns stay clear on desktop: the racer flies there. */}
         <div className="md:col-span-7 md:col-start-6 lg:col-span-6 lg:col-start-7">
+          <DroneBay id="about" />
           <Reveal>
             <h2 className="display text-[2.6rem] font-semibold leading-[1] md:text-6xl">{about.headline}</h2>
           </Reveal>

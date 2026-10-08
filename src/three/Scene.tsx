@@ -23,6 +23,7 @@ const FLEET: AircraftConfig[] = [
     // Hovers beside the Systems heading, gimbal tilted down toward the image panel.
     home: { capabilities: W(0.7, 0.8, 1.05, -0.6, { look: 0.9 }) }, // above the image panel, camera on it
     track: 0.3,
+    bay: { id: "bay-capabilities", home: W(0.05, 0.05, 0.85, -0.6, { look: 0.9 }), from: W(1.9, 0.5, 0.85, -1.2) },
     before: W(2.0, 0.85, 1.25, -1.2),
     after: W(2.2, 1.7, 1.1, -0.9),
     dyn: { maxTiltDeg: 30, kpPos: 2.2, kpVel: 3.4, vMax: 10, attRate: 16, yawRate: 1.8, gust: 1 },
@@ -31,6 +32,7 @@ const FLEET: AircraftConfig[] = [
     id: "racer",
     Model: RacingQuad,
     home: { about: W(-0.5, -0.04, 1.75, 0.9, { orbit: 1 }) },
+    bay: { id: "bay-about", home: W(0, 0, 1.2, 0.9, { orbit: 1 }), from: W(-1.9, 0.4, 1.3, 1.6), orbit: [0.38, 0.12, 0.4, 0.75] },
     // Rips in from the right, low and close to the lens.
     before: W(2.0, -0.55, 2.4, -1.4),
     after: W(-2.3, 0.6, 2.0, 1.6),
@@ -82,6 +84,7 @@ const FLEET: AircraftConfig[] = [
     vtol: true,
     // A mapping VTOL doesn't park: it loiters on the wing, circling beside the flight log.
     home: { journey: W(0.56, 0.05, 1.0, Math.PI / 2, { orbit: 1 }) },
+    bay: { id: "bay-journey", home: W(0, 0, 0.62, Math.PI / 2, { orbit: 1 }), from: W(-2.0, 0.4, 0.62, Math.PI / 2), orbit: [0.7, 0.1, 0.7, 0.6] },
     before: W(-1.7, 0.45, 1.15, Math.PI / 2),
     after: W(2.4, 0.8, 1.0, Math.PI / 2),
     dyn: { maxTiltDeg: 24, kpPos: 2.4, kpVel: 3.4, vMax: 16, attRate: 10, yawRate: 1.8, gust: 0.7 },
@@ -95,6 +98,7 @@ const FLEET: AircraftConfig[] = [
     landing: { gearDrop: AGRI_GEAR_DROP },
     track: 0.2,
     home: { contact: W(0.5, -0.12, 1.15, -2.6) },
+    bay: { id: "bay-contact", home: W(0, 0.12, 0.85, -2.6), from: W(1.9, 0.25, 0.85, -2.6) },
     before: W(0.75, 2.2, 1.15, -2.6),
     after: W(0.5, -0.12, 1.15, -2.6),
     dyn: { maxTiltDeg: 20, kpPos: 1.7, kpVel: 2.6, vMax: 7, attRate: 8, yawRate: 0.9, gust: 0.75 },

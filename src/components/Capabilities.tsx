@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { capabilities } from "../content";
 import { scrollToY } from "../lib/scroll";
+import { DroneBay } from "./DroneBay";
 import { Img } from "./Img";
 import { Reveal } from "./Reveal";
 
@@ -51,8 +52,9 @@ export function Capabilities() {
 
   if (!pinned) {
     return (
-      <section id="capabilities" ref={ref} className="relative py-24">
+      <section id="capabilities" ref={ref} className="relative pb-24 pt-6">
         <div className="mx-auto w-full max-w-[1400px] px-5">
+          <DroneBay id="capabilities" />
           <Reveal>{heading}</Reveal>
           <ul className="mt-12 grid gap-12">
             {capabilities.map((c) => (

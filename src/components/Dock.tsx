@@ -87,15 +87,15 @@ export function Dock() {
   return (
     <motion.nav
       aria-label="Sections"
-      initial={reduce ? false : { y: -40, opacity: 0 }}
+      initial={reduce ? false : { opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed inset-x-0 top-3 z-40 flex justify-center px-4 md:top-5"
+      className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 flex justify-center px-3 md:bottom-auto md:top-5"
     >
       <div
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
-        className="glass flex items-center gap-0.5 rounded-[14px] p-1.5 md:gap-1"
+        className="glass glass-solid flex items-center gap-0.5 rounded-[14px] p-1.5 md:gap-1"
       >
         {ITEMS.map(({ id, label, icon: I }) => (
           <DockButton key={id} mouseX={mouseX} label={label} active={active === id} onClick={() => scrollToId(id)}>

@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpIcon, FileTextIcon, CheckCircleIcon, GithubLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon, EnvelopeSimpleIcon, type Icon } from "@phosphor-icons/react";
 import { contact, imageCredits, profile } from "../content";
 import { scrollToId } from "../lib/scroll";
+import { DroneBay } from "./DroneBay";
 import { Reveal } from "./Reveal";
 
 const SOCIAL_ICONS: Record<string, Icon> = { GitHub: GithubLogoIcon, LinkedIn: LinkedinLogoIcon, YouTube: YoutubeLogoIcon };
@@ -53,9 +54,10 @@ export function Contact() {
   });
 
   return (
-    <section id="contact" className="relative flex min-h-[100dvh] flex-col justify-between pt-24 md:pt-36">
+    <section id="contact" className="relative flex min-h-[100dvh] flex-col justify-between pt-6 md:pt-36">
       <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 px-5 md:grid-cols-12 md:px-10">
         <div className="md:col-span-7 lg:col-span-6">
+          <DroneBay id="contact" />
           <Reveal>
             <p className="font-mono text-xs text-accent">Contact</p>
             <h2 className="display mt-3 text-[2.4rem] font-semibold leading-[1] md:text-5xl lg:text-6xl">{contact.headline}</h2>
@@ -138,7 +140,7 @@ export function Contact() {
         </div>
       </div>
 
-      <footer className="mx-auto mt-24 w-full max-w-[1400px] px-5 pb-8 md:px-10">
+      <footer className="mx-auto mt-24 w-full max-w-[1400px] px-5 pb-28 md:px-10 md:pb-8">
         <div className="flex flex-col gap-6 border-t border-line pt-8 md:flex-row md:items-center md:gap-10">
           <div className="text-sm text-muted">
             <p>

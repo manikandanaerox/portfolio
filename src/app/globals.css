@@ -114,6 +114,12 @@ body {
   border: 1px solid var(--line);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), var(--shadow);
 }
+/* Phones: the dock sits over running text, so it needs to be near-opaque to stay legible. */
+@media (max-width: 767px) {
+  .glass-solid {
+    background: color-mix(in srgb, var(--surface) 97%, transparent);
+  }
+}
 @media (prefers-reduced-transparency: reduce) {
   .glass {
     background: var(--surface);

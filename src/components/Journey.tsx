@@ -1,4 +1,5 @@
 import { earlier, education, journey, languages, leadership } from "../content";
+import { DroneBay } from "./DroneBay";
 import { OrgLogo } from "./OrgLogo";
 import { Reveal } from "./Reveal";
 
@@ -8,9 +9,10 @@ const LOGO_HEIGHT = { dassault: "h-6", sae: "h-8", dgac: "h-9", pprime: "h-12", 
 /* Flight log: four main roles, then earlier internships, leadership and education as compact rows. */
 export function Journey() {
   return (
-    <section id="journey" className="relative py-24 md:py-40">
+    <section id="journey" className="relative pb-24 pt-6 md:py-40">
       <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 px-5 md:grid-cols-12 md:px-10">
         <div className="md:col-span-7 lg:col-span-6">
+          <DroneBay id="journey" />
           <Reveal>
             <h2 className="display text-[2.6rem] font-semibold leading-[1] md:text-7xl lg:text-8xl">Flight log.</h2>
           </Reveal>

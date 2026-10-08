@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0d0e10",
+  viewportFit: "cover",
 };
 
 // Runs before paint so the stored or system theme applies with no flash.
