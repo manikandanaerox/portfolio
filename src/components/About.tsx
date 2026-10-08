@@ -1,5 +1,5 @@
 import { about } from "../content";
-import { DassaultLogo } from "./DassaultLogo";
+import { OrgLogo } from "./OrgLogo";
 import { Reveal } from "./Reveal";
 
 export function About() {
@@ -36,7 +36,7 @@ export function About() {
                 <li key={a.title} className="grid grid-cols-[3.5rem_1fr] gap-4 border-l border-accent pl-4">
                   <span className="font-mono text-sm text-accent">{a.year}</span>
                   <span>
-                    {"dassault" in a && a.dassault && <DassaultLogo className="mb-2.5 block h-7" />}
+                    <OrgLogo org={a.logo} className={`mb-2.5 block ${a.logo === "dassault" ? "h-7" : "h-9"}`} />
                     <span className="block font-medium leading-snug">{a.title}</span>
                     <span className="mt-1 block text-sm text-muted">{a.detail}</span>
                   </span>

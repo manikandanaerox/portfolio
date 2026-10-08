@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { projects, type Project } from "../content";
-import { DassaultLogo } from "./DassaultLogo";
+import { OrgLogo } from "./OrgLogo";
 import { Img } from "./Img";
 
 function ProjectCard({ p }: { p: Project }) {
@@ -22,7 +22,7 @@ function ProjectCard({ p }: { p: Project }) {
             <span>
               {p.kind} <span className="text-muted">{p.when}</span>
             </span>
-            {p.dassault && <DassaultLogo className="h-6 text-ink" />}
+            {p.dassault && <OrgLogo org="dassault" className="h-6 text-ink" />}
           </p>
           <h3 className="display mt-2 text-2xl font-semibold leading-tight md:text-[2rem]">{p.title}</h3>
           <p className="mt-3 max-w-[50ch] leading-relaxed text-muted">{p.summary}</p>

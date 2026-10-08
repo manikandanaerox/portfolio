@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { anatomy } from "../content";
-import { DassaultLogo } from "./DassaultLogo";
+import { OrgLogo } from "./OrgLogo";
 
 /*
   Pinned section. The WebGL drone explodes as this section scrolls
@@ -53,7 +53,7 @@ export function Anatomy() {
                       <p className="max-w-[40ch] pt-1.5 text-sm leading-relaxed text-muted">{part.note}</p>
                       <p className="flex items-center gap-2.5 pt-2 font-mono text-xs text-accent">
                         {part.where}
-                        {part.dassault && <DassaultLogo className="h-5 text-ink" />}
+                        {part.dassault && <OrgLogo org="dassault" className="h-5 text-ink" />}
                       </p>
                     </motion.div>
                   </li>

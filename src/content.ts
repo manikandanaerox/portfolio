@@ -2,9 +2,11 @@ import {
   siAnsys, siArduino, siAutodesk, siCplusplus, siDassaultsystemes, siEspressif, siFortran, siGit, siGnubash, siLinux,
   siNumpy, siNvidia, siPandas, siPython, siScipy,
 } from "simple-icons";
+import type { OrgKey } from "./components/OrgLogo";
 
 /*
-  All site copy, taken from Manikandan_Shanmugam_Resume_Aerospace_General.pdf.
+  All site copy, taken from Manikandan_Shanmugam_Resume_Aerospace_General.pdf
+  and the LinkedIn profile export (public/manikandan.pdf).
   Only the portrait is still a placeholder.
 */
 
@@ -40,15 +42,15 @@ export const about = {
   ],
   // Real figures from the CV.
   stats: [
-    { value: "28", label: "teams at the Dassault UAV Challenge 2026, where our VTOL won the Jury's Favourite Award" },
+    { value: "Top 6", label: "finalist team at the Dassault UAV Challenge 2026, where our VTOL won the Jury's Favourite Award" },
     { value: "100+", label: "flight hours logged as a drone pilot" },
     { value: "20", label: "members in the UAV team I founded and captained" },
   ],
   awards: [
-    { year: "2026", dassault: true, title: "Dassault UAV Challenge", detail: "Prix Coup de cœur du jury (Jury's Favourite Award), ENSMAERO team" },
-    { year: "2024", title: "SAE Autonomous Drone Development Challenge", detail: "Award winner, payload category, as founder and captain of Team Phoenix" },
-    { year: "EU", title: "Certified Drone Pilot (DGAC)", detail: "A1/A3 Open Category" },
-  ],
+    { year: "2026", logo: "dassault", title: "Dassault UAV Challenge", detail: "Top 6 finalist and Prix Coup de cœur du jury (Jury's Favourite Award), ENSMAERO team" },
+    { year: "2024", logo: "sae", title: "SAE Autonomous Drone Development Challenge", detail: "Award winner, payload category, as founder and captain of Team Phoenix" },
+    { year: "EU", logo: "dgac", title: "Certified Drone Pilot (DGAC)", detail: "EU Drone Pilot Certificate, A1/A3 Open Category" },
+  ] satisfies { year: string; logo: OrgKey; title: string; detail: string }[],
 };
 
 export type PartKey = "props" | "motors" | "frame" | "fc" | "battery" | "gps" | "gimbal";
@@ -81,7 +83,7 @@ export const projects: Project[] = [
     when: "2025 - 2026",
     dassault: true,
     title: "Autonomous VTOL 4+1, Dassault UAV Challenge",
-    summary: "A modular 2 m wingspan VTOL that won the Jury's Favourite Award among 28 teams. I designed the propulsion system, ran the CFD optimisation and integrated the flight controller.",
+    summary: "A modular 2 m wingspan VTOL that made the top 6 finalists and won the Jury's Favourite Award. I designed the propulsion system, ran the CFD optimisation and integrated the flight controller.",
     tags: ["VTOL", "Propulsion", "CFD", "SpeedyBee F405", "Python", "C++"],
     image: "/images/vtol-deltaquad.jpg",
   },
@@ -127,32 +129,40 @@ export const projects: Project[] = [
   },
 ];
 
-export const journey = [
+export const journey: { when: string; title: string; where: string; body: string; logo?: OrgKey }[] = [
   {
     when: "Mar - Jul 2026",
+    logo: "pprime",
     title: "Research Intern, Two-Phase Heat Transfer",
-    where: "Institut Pprime (CNRS, Université de Poitiers, ISAE-ENSMA)",
-    body: "Experimental research on two-phase loop thermosyphons for passive thermal management, with MATLAB analysis of heat-transfer coefficients. Co-authoring a manuscript, under internal review.",
+    where: "Institut Pprime (CNRS, Université de Poitiers, ISAE-ENSMA), Chasseneuil-du-Poitou",
+    body: "Experimental research on two-phase loop thermosyphons for passive thermal management: improved the test rig for accuracy and repeatability, ran high-speed flow visualisation with temperature, pressure and mass-flow measurements, and analysed thermal resistance and heat-transfer/flow instabilities. Co-authoring a manuscript for an international peer-reviewed journal, under internal review.",
   },
   {
     when: "Oct 2025 - Now",
-    dassault: true,
+    logo: "dassault",
     title: "Propulsion & UAV Systems Engineer",
     where: "ENSMAERO student team, Dassault UAV Challenge",
-    body: "Propulsion design, CFD optimisation and flight-controller integration for the VTOL that won the Jury's Favourite Award in 2026.",
+    body: "A modular 4+1 VTOL with a 2 m wingspan over a one-year design-build-test cycle: propulsion design and CFD optimisation, sensor integration on a SpeedyBee F405 and control algorithms in Python and C++, with Dassault Aviation mentors. Top 6 finalist and Jury's Favourite Award in 2026.",
   },
   {
     when: "Jul 2024 - Mar 2025",
+    logo: "recon",
     title: "R&D Engineering Intern, VTOL Design",
     where: "Team Reconnaissance, Hindustan Technology Business Incubator",
     body: "Autonomous VTOL systems on Holybro with a Jetson Nano companion computer, flight-test campaigns and Python pipelines for flight data.",
   },
   {
     when: "Nov 2022 - Aug 2025",
+    logo: "sae",
     title: "Founder & Team Captain, Team Phoenix",
-    where: "Loyola-ICAM College of Engineering and Technology",
-    body: "Built and led a 20-member UAV team through design, build and flight test of autonomous drones.",
+    where: "Loyola-ICAM College of Engineering and Technology, SAE Autonomous Drone Design Challenge",
+    body: "Built and led a 20-member UAV team through CAD, FEA, 3D printing and flight test of autonomous drones. Also captained Team Turbonites LICET at SAE ADDC 2024-2025, managing timeline, resources and competition prep, and flew as team drone pilot: pre-flight checks, mission planning, mapping and 100+ flight hours.",
   },
+];
+
+export const leadership = [
+  { when: "2023 - 2025", title: "Joint Secretary, ISHRAE Chennai Chapter", where: "500+ member student body; HVAC, energy and aerospace workshops and industry talks" },
+  { when: "2023 - 2025", title: "3D Printing Student Lead", where: "LICET Fablab; fabrication workshops and maker events" },
 ];
 
 export const earlier = [
@@ -182,8 +192,10 @@ export const toolchain: { name: string; icon?: { path: string } }[] = [
   { name: "Cantera" },
   { icon: siDassaultsystemes, name: "CATIA / SolidWorks" },
   { icon: siAutodesk, name: "Fusion 360" },
-  { name: "ArduPilot" },
+  { name: "Pixhawk / ArduPilot" },
   { name: "MAVLink" },
+  { name: "QGroundControl" },
+  { name: "Mission Planner" },
   { icon: siNvidia, name: "Jetson Nano" },
   { icon: siEspressif, name: "ESP32" },
   { icon: siArduino, name: "ATmega328" },

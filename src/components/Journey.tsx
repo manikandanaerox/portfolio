@@ -1,8 +1,11 @@
-import { earlier, education, journey, languages } from "../content";
-import { DassaultLogo } from "./DassaultLogo";
+import { earlier, education, journey, languages, leadership } from "../content";
+import { OrgLogo } from "./OrgLogo";
 import { Reveal } from "./Reveal";
 
-/* Flight log: four main roles, then earlier internships and education as compact rows. */
+// Wordmarks are wide, Pprime's mark is tall: per-logo heights keep them optically matched.
+const LOGO_HEIGHT = { dassault: "h-6", sae: "h-8", dgac: "h-9", pprime: "h-12", recon: "h-7" } as const;
+
+/* Flight log: four main roles, then earlier internships, leadership and education as compact rows. */
 export function Journey() {
   return (
     <section id="journey" className="relative py-24 md:py-40">
@@ -19,7 +22,7 @@ export function Journey() {
                   <div>
                     <h3 className="text-xl font-semibold tracking-tight md:text-2xl">{j.title}</h3>
                     <p className="mt-1 text-sm text-muted">{j.where}</p>
-                    {"dassault" in j && j.dassault && <DassaultLogo className="mt-3 h-6 text-ink" />}
+                    {j.logo && <OrgLogo org={j.logo} className={`mt-4 text-ink ${LOGO_HEIGHT[j.logo]}`} />}
                     <p className="mt-3 max-w-[56ch] leading-relaxed text-muted">{j.body}</p>
                   </div>
                 </Reveal>
@@ -32,6 +35,19 @@ export function Journey() {
               <h3 className="font-mono text-sm text-accent">Earlier internships</h3>
               <ul className="mt-4 grid gap-3">
                 {earlier.map((e) => (
+                  <li key={e.title}>
+                    <p className="font-medium leading-snug">{e.title}</p>
+                    <p className="text-sm text-muted">
+                      {e.where}, {e.when}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-mono text-sm text-accent">Leadership</h3>
+              <ul className="mt-4 grid gap-3">
+                {leadership.map((e) => (
                   <li key={e.title}>
                     <p className="font-medium leading-snug">{e.title}</p>
                     <p className="text-sm text-muted">
