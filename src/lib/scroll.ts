@@ -23,3 +23,4 @@ export function scrollToY(y: number) {
   if (lenis) lenis.scrollTo(y, { duration: 1.2 });
   else window.scrollTo({ top: y, behavior: reducedMotion() ? "auto" : "smooth" });
 }
+

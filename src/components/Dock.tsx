@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type MotionValue } from "motion/react";
 import {
-  RocketLaunchIcon, UserIcon, FlameIcon, FanIcon, DroneIcon, PathIcon, PaperPlaneTiltIcon, SunIcon, MoonIcon,
+  RocketLaunchIcon, UserIcon, FlameIcon, FanIcon, DroneIcon, CameraIcon, PathIcon, PaperPlaneTiltIcon, SunIcon, MoonIcon,
   type Icon,
 } from "@phosphor-icons/react";
 import { SECTION_IDS, type SectionId } from "../lib/stage";
@@ -16,6 +16,7 @@ const ITEMS: { id: SectionId; label: string; icon: Icon }[] = [
   { id: "rocket", label: "Propulsion", icon: FlameIcon },
   { id: "propulsion", label: "ATREX study", icon: FanIcon },
   { id: "uav", label: "UAV", icon: DroneIcon },
+  { id: "gallery", label: "Photos", icon: CameraIcon },
   { id: "journey", label: "Experience", icon: PathIcon },
   { id: "contact", label: "Contact", icon: PaperPlaneTiltIcon },
 ];

@@ -4,7 +4,7 @@
   from the section's bounding rect, so it follows Lenis' smoothed scroll exactly.
 */
 
-export const SECTION_IDS = ["home", "about", "rocket", "propulsion", "uav", "journey", "contact"] as const;
+export const SECTION_IDS = ["home", "about", "rocket", "propulsion", "uav", "gallery", "journey", "contact"] as const;
 export type SectionId = (typeof SECTION_IDS)[number];
 
 /** Scroll distance per chapter step, in viewport heights. */

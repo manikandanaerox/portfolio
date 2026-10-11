@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScro
 import { FileTextIcon, GithubLogoIcon, LinkedinLogoIcon, type Icon } from "@phosphor-icons/react";
 import { hero, launch, profile } from "../content";
 import { Img } from "./Img";
+import { LaunchQuotes } from "./LaunchQuotes";
 
 /*
   Opening shot: a launch, scrubbed by scroll. The section pins for several
@@ -103,6 +104,9 @@ export function Hero() {
             </motion.div>
           </motion.div>
         </motion.div>
+
+        {/* Quotes beside the climbing vehicle */}
+        <LaunchQuotes progress={scrollYProgress} />
 
         {/* Launch events, named as they happen */}
         <div aria-live="polite" className="pointer-events-none absolute bottom-24 left-5 md:bottom-10 md:left-10">

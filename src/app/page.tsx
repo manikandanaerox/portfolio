@@ -4,6 +4,7 @@ import { Dock } from "@/components/Dock";
 import { Hero } from "@/components/Hero";
 import { About } from "@/components/About";
 import { AircraftEngine, RocketEngine, Uav } from "@/components/Chapters";
+import { Gallery } from "@/components/Gallery";
 import { Journey } from "@/components/Journey";
 import { Toolchain } from "@/components/Toolchain";
 import { Contact } from "@/components/Contact";
@@ -20,6 +21,7 @@ export default function Home() {
         <RocketEngine />
         <AircraftEngine />
         <Uav />
+        <Gallery />
         <Journey />
         <Toolchain />
         <Contact />
