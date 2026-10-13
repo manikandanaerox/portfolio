@@ -14,6 +14,7 @@ import { Vtol } from "../aircraft/Vtol";
 import { AgriHex } from "../aircraft/AgriHex";
 import { isPortrait, stepOf, type ActProps } from "./common";
 import { PhoenixDecal } from "./PhoenixDecal";
+import { uavShow } from "../../lib/uavShow";
 
 /*
   UAV: the one section the drones own. The whole fleet shares the stage; each
@@ -75,17 +76,9 @@ const FLEET: Craft[] = [
   },
 ];
 
-// Formation slots (screen NDC x, y and apparent size), behind and around centre stage.
-const SLOTS_WIDE: [number, number, number][] = [
-  [0.05, 0.5, 0.58], [0.4, 0.58, 0.52], [0.76, 0.5, 0.58], [0.9, 0.02, 0.5], [0.74, -0.6, 0.55],
-];
-const SLOTS_TALL: [number, number, number][] = [
-  [-0.68, 0.84, 0.42], [-0.24, 0.9, 0.4], [0.22, 0.9, 0.4], [0.66, 0.84, 0.42], [0.72, -0.02, 0.4],
-];
-const STAGE_WIDE: [number, number] = [0.34, -0.05];
-const STAGE_TALL: [number, number] = [0, 0.4];
-
-const ENTRY_FROM = [-1.9, 1.9, -1.9, 1.9, 1.9];
+// Hover spot (NDC): above the photo panel (components/UavRoulette).
+const SPOT_WIDE: [number, number] = [0.48, 0.66];
+const SPOT_TALL: [number, number] = [0.45, 0.83];
 const CAM_POS: [number, number, number] = [0, 3.2, 9];
 
 function Aircraft({ craft, seed, stage }: { craft: Craft; seed: number; stage: RefObject<HTMLElement> }) {
@@ -126,32 +119,22 @@ function Aircraft({ craft, seed, stage }: { craft: Craft; seed: number; stage: R
     const visW = visH * camera.aspect;
     const fit = portrait ? visW / 3.6 : Math.min(1, visW / 9);
 
-    // Where the chapter is: entering (stage rising into view), the active step, and its local progress.
-    const section = stage.current?.parentElement ?? null;
-    const rect = section?.getBoundingClientRect();
-    const vh = window.innerHeight;
-    const enter = rect ? smootherstep((vh - rect.top) / (vh * 0.9)) : 1;
+    // Step position, for the VTOL transition timing below.
     const s = stepOf(stage, N);
     const step = Math.floor(s);
     const local = s - step;
-    const featured = step === craft.feature;
+    // One aircraft on stage at a time, chosen by the photo roulette (lib/uavShow): it rises
+    // from below to hover above the current photo; the others wait below the frame.
+    const featured = uavShow.index % FLEET.length === seed;
     sim.feat = THREE.MathUtils.damp(sim.feat, featured ? 1 : 0, 2.2, dt);
-
-    // Setpoint: centre stage when featured, formation slot otherwise; fly in from the side on entry.
-    const slots = portrait ? SLOTS_TALL : SLOTS_WIDE;
-    const stageXY = portrait ? STAGE_TALL : STAGE_WIDE;
-    const sl = slots[craft.slot];
-    let x = featured ? stageXY[0] : sl[0];
-    let y = featured ? stageXY[1] : sl[1];
-    let size = featured ? craft.size * (portrait ? 0.62 : 1) : sl[2];
-    x = THREE.MathUtils.lerp(ENTRY_FROM[craft.slot], x, enter);
-    y = THREE.MathUtils.lerp(y + 0.3, y, enter);
-    // Survey mission (plain-language step): climb out from low before flying the pattern.
-    if (featured && craft.pattern === "survey") y -= (1 - smootherstep(local / 0.25)) * 0.55;
+    const spot = portrait ? SPOT_TALL : SPOT_WIDE;
+    const x = featured ? spot[0] : spot[0] + (seed - 2) * 0.35;
+    const y = featured ? spot[1] : -1.9;
+    const size = (portrait ? 0.42 : 0.62) * craft.size;
     toWorld(x, y, size, fit, sim.target);
 
-    // Featured manoeuvres.
-    const pat = featured && !reduce ? craft.pattern : null;
+    // No manoeuvres or exploded views here: the aircraft just hovers with the photo.
+    const pat = null as Pattern;
     const patW = pat === "circle" ? smootherstep((local - 0.3) / 0.25) : pat === "survey" ? smootherstep((local - 0.22) / 0.15) : pat ? 1 : 0;
     if (pat && craft.orbit && patW > 0) {
       const [ax, ay, az, w] = craft.orbit;
@@ -176,7 +159,7 @@ function Aircraft({ craft, seed, stage }: { craft: Craft; seed: number; stage: R
     }
 
     // Exploded view (self-tuning flight controller step): hover, spool down, open up, board highlighted.
-    const wantExplode = craft.exhibit && featured ? smootherstep((local - 0.12) / 0.3) * (1 - smootherstep((local - 0.85) / 0.15)) : 0;
+    const wantExplode = 0;
     sim.explode = THREE.MathUtils.damp(sim.explode, wantExplode, 4, dt);
     const exhibit = THREE.MathUtils.smoothstep(sim.explode, 0.02, 0.3);
 

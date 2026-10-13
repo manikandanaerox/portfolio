@@ -13,7 +13,7 @@ AGENTS.md
 # Environment
 .env*
 !.env.example
-
+public/images/temp
 # Logs and OS clutter
 *.log
 npm-debug.log*

@@ -2,14 +2,13 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useSpring } from "motion/react";
-import { earlier, education, journey, languages, leadership, otherProjects } from "../content";
+import { education, journey, languages, leadership, otherProjects } from "../content";
 import { OrgLogos } from "./OrgLogo";
 import { Reveal } from "./Reveal";
 
-
 /*
   Experience: the main roles on a trajectory rail that draws itself as you
-  scroll; other projects, internships, leadership and education in a side column.
+  scroll (every role and internship); other projects, leadership and education beside it.
 */
 export function Journey() {
   const list = useRef<HTMLOListElement>(null);
@@ -47,19 +46,6 @@ export function Journey() {
               <h3 className="font-mono text-sm text-accent">Other projects</h3>
               <ul className="mt-4 grid gap-3">
                 {otherProjects.map((e) => (
-                  <li key={e.title}>
-                    <p className="font-medium leading-snug">{e.title}</p>
-                    <p className="text-sm text-muted">
-                      {e.where}, {e.when}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-mono text-sm text-accent">Earlier internships</h3>
-              <ul className="mt-4 grid gap-3">
-                {earlier.map((e) => (
                   <li key={e.title}>
                     <p className="font-medium leading-snug">{e.title}</p>
                     <p className="text-sm text-muted">

@@ -128,7 +128,7 @@ body {
   }
 }
 
-/* Single marquee on the page (toolchain) */
+/* Toolchain marquee */
 @keyframes marquee {
   to {
     transform: translateX(-50%);
@@ -141,9 +141,29 @@ body {
   animation-play-state: paused;
 }
 
+/* Photo strip: drifts left to right (starts shifted by half its doubled length). */
+@keyframes photo-strip {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.photo-strip-track {
+  animation: photo-strip 90s linear infinite;
+}
+.photo-strip:hover .photo-strip-track {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
+  .marquee-track,
+  .photo-strip-track {
     animation: none;
+  }
+  .photo-strip {
+    overflow-x: auto;
   }
 }
 

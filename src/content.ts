@@ -210,6 +210,23 @@ export const journey: { when: string; title: string; where: string; body: string
     title: "Founder & Team Captain, Team Phoenix",
     where: "Loyola-ICAM College of Engineering and Technology, SAE Autonomous Drone Design Challenge",
     body: "Built and led a 20-member UAV team through CAD, FEA, 3D printing and flight test of autonomous drones. Also captained Team Turbonites LICET at SAE ADDC 2024-2025, managing timeline, resources and competition prep, and flew as team drone pilot: pre-flight checks, mission planning, mapping and 100+ flight hours.",
+  },  {
+    when: "Feb - Apr 2024",
+    title: "Automation & Systems Integration Intern",
+    where: "Loyola-ICAM College of Engineering and Technology, Chennai",
+    body: "Automated data-processing workflows in Python and developed interfaces connecting multiple data sources to centralised databases.",
+  },
+  {
+    when: "Jul 2023",
+    title: "Wind Turbine Technician Intern",
+    where: "Litewind Ltd, Chennai",
+    body: "Assisted with wind-turbine installation, testing and maintenance, and studied electric motor and power-generation systems.",
+  },
+  {
+    when: "Jun - Jul 2023",
+    title: "CMM Programmer Intern",
+    where: "Unique Measurement Service, Chennai",
+    body: "Programmed coordinate measuring machine sequences from SolidWorks models for precision inspection of mechanical components, and prepared inspection reports.",
   },
 ];
 
@@ -222,12 +239,6 @@ export const otherProjects = [
   { when: "Apr 2026", title: "Supersonic CFD", where: "Mach 4 double-wedge airfoil, Busemann biplane, nozzle flows (STAR-CCM+)" },
   { when: "Dec 2025", title: "Transient conduction solver", where: "Finite-volume sphere with angle-dependent convection, von Neumann stability" },
   { when: "2025 - 2026", title: "Automated thermal test interface", where: "MATLAB and Fortran GUI, multi-sensor acquisition and live plots" },
-];
-
-export const earlier = [
-  { when: "2024", title: "Automation & Systems Integration Intern", where: "Loyola-ICAM" },
-  { when: "2023", title: "Wind Turbine Technician Intern", where: "Litewind Ltd" },
-  { when: "2023", title: "CMM Programmer Intern", where: "Unique Measurement Service" },
 ];
 
 export const education = [

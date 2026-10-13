@@ -22,9 +22,11 @@ type Props = {
   id: ChapterId;
   /** Extra live content under the active step (e.g. computed shock angles). */
   extra?: (progress: MotionValue<number>, step: number) => ReactNode;
+  /** Content placed on the stage beside the text (e.g. a photo roulette). */
+  aside?: ReactNode;
 };
 
-export function Chapter({ id, extra }: Props) {
+export function Chapter({ id, extra, aside }: Props) {
   const ch = chapters[id];
   const n = ch.steps.length;
   const ref = useRef<HTMLElement>(null);
@@ -52,6 +54,7 @@ export function Chapter({ id, extra }: Props) {
         {/* Phones: fade the lower scene into the page so the card stays legible */}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-bg via-bg/90 to-transparent md:hidden" />
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 hidden w-[52%] bg-gradient-to-r from-bg from-30% via-bg/80 to-transparent md:block" />
+        {aside}
 
         <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col justify-end px-5 pb-24 md:justify-center md:px-10 md:pb-0">
           <div className="md:max-w-[34rem] lg:max-w-[38rem]">
