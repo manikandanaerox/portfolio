@@ -78,7 +78,7 @@ const FLEET: Craft[] = [
 
 // Hover spot (NDC): above the photo panel (components/UavRoulette).
 const SPOT_WIDE: [number, number] = [0.48, 0.66];
-const SPOT_TALL: [number, number] = [0.45, 0.83];
+const SPOT_TALL: [number, number] = [0.42, 0.86];
 const CAM_POS: [number, number, number] = [0, 3.2, 9];
 
 function Aircraft({ craft, seed, stage }: { craft: Craft; seed: number; stage: RefObject<HTMLElement> }) {
@@ -129,7 +129,7 @@ function Aircraft({ craft, seed, stage }: { craft: Craft; seed: number; stage: R
     sim.feat = THREE.MathUtils.damp(sim.feat, featured ? 1 : 0, 2.2, dt);
     const spot = portrait ? SPOT_TALL : SPOT_WIDE;
     const x = featured ? spot[0] : spot[0] + (seed - 2) * 0.35;
-    const y = featured ? spot[1] : -1.9;
+    const y = featured ? spot[1] : -1.3; // just below the frame, so the next one is never far
     const size = (portrait ? 0.42 : 0.62) * craft.size;
     toWorld(x, y, size, fit, sim.target);
 

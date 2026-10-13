@@ -9,7 +9,7 @@ import { photos } from "../data/gallery";
 export function Gallery() {
   const row = [...photos, ...photos];
   return (
-    <section id="gallery" aria-label="Photos" className="relative py-24 md:py-32">
+    <section id="gallery" aria-label="Photos" className="relative pb-8 pt-24 md:py-32">
       <div className="mx-auto max-w-[1400px] px-5 md:px-10">
         <h2 className="display text-[2.4rem] font-semibold leading-[1] md:text-6xl">Off the screen.</h2>
         <p className="mt-4 max-w-[46ch] text-muted md:text-lg">Flying, building and testing with the team, and Paris in between.</p>
